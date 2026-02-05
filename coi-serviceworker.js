@@ -25,7 +25,9 @@ if (typeof window === "undefined") {
                     });
                 })
                 .catch((err) => {
-                    return fetch(event.request);
+                    // Если основной запрос заблокирован политикой CORP, пробуем загрузить без неё
+                    // Это критично для ресурсов с CDN, которые не поддерживают CORP напрямую
+                    return fetch(event.request.url);
                 })
         );
     });

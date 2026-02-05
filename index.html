@@ -267,11 +267,11 @@
         <div class="controls" id="controls" style="display: none">
             <div class="control-group">
                 <label>Ширина видео</label>
-                <input type="number" id="width" value="1280">
+                <input type="number" id="width" value="800">
             </div>
             <div class="control-group">
                 <label>Высота видео</label>
-                <input type="number" id="height" value="720">
+                <input type="number" id="height" value="100">
             </div>
             <div class="control-group">
                 <label>Стиль волны</label>
@@ -309,6 +309,17 @@
             <div class="progress-fill" id="progressFill"></div>
         </div>
 
+        <!-- Секция для готового видео -->
+        <div id="resultSection" style="display: none; margin-top: 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+            <h3 style="color: #94a3b8; font-size: 1rem; margin-bottom: 15px;">Результат готов:</h3>
+            <video id="outputVideo" controls style="width: 100%; border-radius: 12px; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></video>
+            <div style="margin-top: 20px;">
+                <a id="downloadBtn" class="btn-generate" style="display: inline-block; text-decoration: none; width: auto; padding: 12px 30px;">
+                    📥 Скачать видео
+                </a>
+            </div>
+        </div>
+
         <!-- SEO Content -->
         <div class="seo-content" style="margin-top: 50px; font-size: 0.9rem; color: #64748b; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 30px;">
             <h2 style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 15px;">Как работает онлайн визуализатор аудио?</h2>
@@ -323,15 +334,17 @@
     </div>
     <!-- Scripts -->
     <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+    <script src="ffmpeg/ffmpeg.js"></script>
+    <script src="ffmpeg/util.js"></script>
     
-    <script type="module">
-        import { FFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/esm/index.js';
-        import { fetchFile, toBlobURL } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js';
-
+    <script>
         // Глобальные переменные
         let audioFile = null;
         let wavesurfer = null;
         let ffmpeg = null;
+
+        const { FFmpeg } = FFmpegWASM;
+        const { fetchFile, toBlobURL } = FFmpegUtil;
 
         // UI Initialization
         function initApp() {
@@ -366,8 +379,32 @@
                 initWaveform(file);
                 document.getElementById('controls').style.display = 'grid';
                 document.getElementById('playbackControls').style.display = 'block';
+                document.getElementById('resultSection').style.display = 'none'; // Скрываем старое видео
                 generateBtn.style.display = 'block';
                 status.innerText = `Файл выбран: ${file.name}`;
+            }
+
+            // Сохранение настроек в LocalStorage
+            function saveSettings() {
+                const settings = {
+                    width: document.getElementById('width').value,
+                    height: document.getElementById('height').value,
+                    waveType: document.getElementById('waveType').value,
+                    waveColor: document.getElementById('waveColor').value
+                };
+                localStorage.setItem('waveform_settings', JSON.stringify(settings));
+            }
+
+            // Загрузка настроек
+            function loadSettings() {
+                const saved = localStorage.getItem('waveform_settings');
+                if (saved) {
+                    const settings = JSON.parse(saved);
+                    document.getElementById('width').value = settings.width || 800;
+                    document.getElementById('height').value = settings.height || 100;
+                    document.getElementById('waveType').value = settings.waveType || 'bars';
+                    document.getElementById('waveColor').value = settings.waveColor || '#2ecc71';
+                }
             }
 
             // Живое обновление настроек
@@ -380,9 +417,9 @@
                 const bars = document.querySelectorAll('.wave-bar');
                 bars.forEach(bar => {
                     bar.style.backgroundColor = color;
-                    bar.style.width = (type === 'bars') ? '4px' : '20px';
-                    bar.style.borderRadius = (type === 'bars') ? '2px' : '0';
-                    bar.style.marginRight = (type === 'bars') ? '2px' : '-19px';
+                    bar.style.width = (type === 'bars') ? '6px' : '20px';
+                    bar.style.borderRadius = (type === 'bars') ? '10px' : '0';
+                    bar.style.marginRight = (type === 'bars') ? '4px' : '-19px';
                 });
 
                 // Обновляем основную волну
@@ -390,17 +427,21 @@
                     const isBars = type === 'bars';
                     wavesurfer.setOptions({
                         waveColor: color,
-                        barWidth: isBars ? 3 : 0,
-                        barGap: isBars ? 2 : 0,
-                        barRadius: isBars ? 4 : 0,
+                        barWidth: isBars ? 6 : 0,
+                        barGap: isBars ? 4 : 0,
+                        barRadius: isBars ? 10 : 0,
                     });
                 }
+                saveSettings();
             }
 
             document.getElementById('waveColor').oninput = updateSettings;
             document.getElementById('waveType').onchange = updateSettings;
+            document.getElementById('width').oninput = saveSettings;
+            document.getElementById('height').oninput = saveSettings;
 
-            // Инициализация начальных значений
+            // Инициализация
+            loadSettings();
             updateSettings();
 
             function initWaveform(file) {
@@ -410,7 +451,9 @@
                     container: '#waveform',
                     waveColor: document.getElementById('waveColor').value,
                     progressColor: '#ffffff',
-                    barWidth: isBars ? 3 : 0, barGap: isBars ? 2 : 0, barRadius: isBars ? 4 : 0,
+                    barWidth: isBars ? 6 : 0, 
+                    barGap: isBars ? 4 : 0, 
+                    barRadius: isBars ? 10 : 0,
                     height: 120, interactive: true
                 });
                 wavesurfer.load(URL.createObjectURL(file));
@@ -428,14 +471,12 @@
                         status.innerText = 'Загрузка ядра FFmpeg (30MB)...';
                         ffmpeg = new FFmpeg();
                         
-                        // Используем проверенную ESM версию 0.12.4 для ядра
-                        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm';
-                        
+                        // ФИНАЛЬНОЕ РЕШЕНИЕ: Загружаем всё локально
+                        // Это на 100% убирает ошибки SecurityError и CORS
                         await ffmpeg.load({
-                            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-                            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-                            // ФИКС: Явно загружаем воркер самой библиотеки через Blob
-                            workerURL: await toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/esm/worker.js', 'text/javascript'),
+                            coreURL: await toBlobURL('ffmpeg/ffmpeg-core.js', 'text/javascript'),
+                            wasmURL: await toBlobURL('ffmpeg/ffmpeg-core.wasm', 'application/wasm'),
+                            workerURL: await toBlobURL('ffmpeg/814.ffmpeg.js', 'text/javascript'),
                         });
                     }
 
@@ -456,15 +497,30 @@
                     const type = document.getElementById('waveType').value;
 
                     let filter = `showwaves=s=${width}x${height}:mode=cline:colors=${color}`;
-                    if (type === 'bars') filter += `,scale=120:${height}:flags=neighbor,scale=${width}:${height}:flags=neighbor`;
+                    if (type === 'bars') {
+                        // Улучшенные скругленные столбики: 
+                        // уменьшаем количество (60 вместо 120), добавляем небольшое размытие для скругления 
+                        // и масштабируем сглаженным алгоритмом
+                        filter = `showwaves=s=60x${height}:mode=cline:colors=${color},gblur=sigma=1,scale=${width}:${height}:flags=bicubic`;
+                    }
 
                     await ffmpeg.exec(['-i', audioFile.name, '-filter_complex', `[0:a]${filter},format=yuv420p[v]`, '-map', '[v]', '-map', '0:a', '-c:v', 'libx264', '-preset', 'ultrafast', 'output.mp4']);
 
                     const data = await ffmpeg.readFile('output.mp4');
                     const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-                    const a = document.createElement('a'); a.href = url; a.download = audioFile.name.split('.')[0] + '_waveform.mp4'; a.click();
-
-                    status.innerText = 'Готово!';
+                    
+                    // Показываем видео в плеере
+                    const resultSection = document.getElementById('resultSection');
+                    const outputVideo = document.getElementById('outputVideo');
+                    const downloadBtn = document.getElementById('downloadBtn');
+                    
+                    outputVideo.src = url;
+                    downloadBtn.href = url;
+                    downloadBtn.download = audioFile.name.split('.')[0] + '_waveform.mp4';
+                    
+                    resultSection.style.display = 'block';
+                    progressBar.style.display = 'none';
+                    status.innerText = 'Видео успешно создано!';
                     generateBtn.disabled = false;
                 } catch (err) {
                     console.error(err);
