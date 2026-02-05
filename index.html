@@ -200,23 +200,32 @@
             <div class="progress-fill" id="progressFill"></div>
         </div>
     </div>
+    <!-- Scripts -->
     <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/umd/ffmpeg.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+    
     <script>
-        // UI Logic - Works independently of FFmpeg
+        // Global variables
         let audioFile = null;
         let wavesurfer = null;
+        let ffmpeg = null;
 
-        function initUI() {
+        function initApp() {
+            const { FFmpeg } = FFmpegWASM;
+            const { fetchFile, toBlobURL } = FFmpegUtil;
+
             const fileInput = document.getElementById('fileInput');
             const dropzone = document.getElementById('dropzone');
             const generateBtn = document.getElementById('generateBtn');
             const status = document.getElementById('status');
             const playBtn = document.getElementById('playBtn');
+            const progressFill = document.getElementById('progressFill');
+            const progressBar = document.getElementById('progressBar');
 
-            dropzone.addEventListener('click', () => {
-                console.log("Dropzone clicked");
-                fileInput.click();
-            });
+            console.log("App Initialized");
+
+            dropzone.addEventListener('click', () => fileInput.click());
 
             fileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
@@ -280,88 +289,73 @@
 
             document.getElementById('waveType').onchange = () => audioFile && initWaveform(audioFile);
             document.getElementById('waveColor').onchange = () => audioFile && initWaveform(audioFile);
-        }
 
-        // Initialize UI immediately
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initUI);
-        } else {
-            initUI();
-        }
-    </script>
-    <script type="module">
-        // FFmpeg Logic - Loaded only when needed
-        let ffmpeg = null;
-        const generateBtn = document.getElementById('generateBtn');
+            generateBtn.onclick = async () => {
+                try {
+                    if (!ffmpeg) {
+                        status.innerText = 'Загрузка ядра FFmpeg (30MB)...';
+                        ffmpeg = new FFmpeg();
+                        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm';
+                        await ffmpeg.load({
+                            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+                            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+                        });
+                    }
 
-        generateBtn.onclick = async () => {
-            const status = document.getElementById('status');
-            const progressFill = document.getElementById('progressFill');
-            const progressBar = document.getElementById('progressBar');
+                    status.innerText = 'Обработка видео...';
+                    progressBar.style.display = 'block';
+                    generateBtn.disabled = true;
 
-            try {
-                if (!ffmpeg) {
-                    status.innerText = 'Загрузка библиотек FFmpeg...';
-                    
-                    // Loading FFmpeg module dynamically to prevent blocking UI if network fails
-                    const { FFmpeg } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/index.js');
-                    const { fetchFile, toBlobURL } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/index.js');
-
-                    ffmpeg = new FFmpeg();
-                    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm';
-                    await ffmpeg.load({
-                        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-                        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+                    ffmpeg.on('progress', ({ progress }) => {
+                        progressFill.style.width = `${progress * 100}%`;
+                        status.innerText = `Рендеринг: ${Math.round(progress * 100)}%`;
                     });
+
+                    const { name } = audioFile;
+                    await ffmpeg.writeFile(name, await fetchFile(audioFile));
+
+                    const width = document.getElementById('width').value;
+                    const height = document.getElementById('height').value;
+                    const color = document.getElementById('waveColor').value.replace('#', '0x');
+                    const type = document.getElementById('waveType').value;
+
+                    let filter = `showwaves=s=${width}x${height}:mode=cline:colors=${color}`;
+                    if (type === 'bars') {
+                        filter += `,scale=120:${height}:flags=neighbor,scale=${width}:${height}:flags=neighbor`;
+                    }
+
+                    await ffmpeg.exec([
+                        '-i', name,
+                        '-filter_complex', `[0:a]${filter},format=yuv420p[v]`,
+                        '-map', '[v]', '-map', '0:a',
+                        '-c:v', 'libx264', '-preset', 'ultrafast',
+                        'output.mp4'
+                    ]);
+
+                    const data = await ffmpeg.readFile('output.mp4');
+                    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = name.split('.')[0] + '_waveform.mp4';
+                    a.click();
+
+                    status.innerText = 'Готово!';
+                    generateBtn.disabled = false;
+                } catch (err) {
+                    console.error(err);
+                    status.innerText = 'Ошибка: ' + err.message;
+                    generateBtn.disabled = false;
                 }
+            };
+        }
 
-                status.innerText = 'Обработка видео...';
-                progressBar.style.display = 'block';
-                generateBtn.disabled = true;
-
-                ffmpeg.on('progress', ({ progress }) => {
-                    progressFill.style.width = `${progress * 100}%`;
-                    status.innerText = `Рендеринг: ${Math.round(progress * 100)}%`;
-                });
-
-                const { name } = audioFile;
-                const { fetchFile } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/index.js');
-                await ffmpeg.writeFile(name, await fetchFile(audioFile));
-
-                const width = document.getElementById('width').value;
-                const height = document.getElementById('height').value;
-                const color = document.getElementById('waveColor').value.replace('#', '0x');
-                const type = document.getElementById('waveType').value;
-
-                let filter = `showwaves=s=${width}x${height}:mode=cline:colors=${color}`;
-                if (type === 'bars') {
-                    filter += `,scale=120:${height}:flags=neighbor,scale=${width}:${height}:flags=neighbor`;
-                }
-
-                await ffmpeg.exec([
-                    '-i', name,
-                    '-filter_complex', `[0:a]${filter},format=yuv420p[v]`,
-                    '-map', '[v]', '-map', '0:a',
-                    '-c:v', 'libx264', '-preset', 'ultrafast',
-                    'output.mp4'
-                ]);
-
-                const data = await ffmpeg.readFile('output.mp4');
-                const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = name.split('.')[0] + '_waveform.mp4';
-                a.click();
-
-                status.innerText = 'Готово!';
-                generateBtn.disabled = false;
-            } catch (err) {
-                console.error(err);
-                status.innerText = 'Ошибка: ' + err.message;
-                generateBtn.disabled = false;
-            }
-        };
+        // Run init
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
 </body>
 
