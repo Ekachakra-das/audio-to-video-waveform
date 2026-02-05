@@ -89,19 +89,105 @@
             border-radius: 12px;
             margin: 20px 0;
             display: none;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        #waveform.stars-active canvas {
+            filter: drop-shadow(0 0 10px var(--glow-color, rgba(46, 204, 113, 0.8)));
+            mask-image: radial-gradient(circle, black 30%, transparent 70%);
+            -webkit-mask-image: radial-gradient(circle, black 30%, transparent 70%);
+        }
+
+        @keyframes stars-pulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        #waveform.stars-active {
+            animation: stars-pulse 2s infinite ease-in-out;
         }
 
         .controls {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 40px 70px; /* 40px вертикальный отступ, 70px горизонтальный */
             margin-bottom: 30px;
+            align-items: end; /* Выравнивание по нижней линии */
+        }
+
+        /* Общий стиль для всех ползунков */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            outline: none;
+            margin: 15px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #2ecc71; /* Основной цвет по умолчанию */
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #27ae60;
         }
 
         .control-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
+        }
+
+        /* Чтобы селектор разрешения занимал всю строку, если нужно, или просто был аккуратным */
+        .control-group.full-width {
+            grid-column: span 2;
+        }
+
+        .toggle-group {
+            display: flex;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .toggle-btn.active {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .toggle-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
         }
 
         label {
@@ -155,6 +241,18 @@
         input[type="color"]::-webkit-color-swatch {
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
+        }
+
+        @keyframes stars-pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.02); opacity: 1; filter: brightness(1.2) blur(0.5px); }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        .stars-active {
+            animation: stars-pulse 2s infinite ease-in-out;
+            mask-image: radial-gradient(circle, white 0%, transparent 70%);
+            -webkit-mask-image: radial-gradient(circle, white 0%, transparent 70%);
         }
 
         .wave-preview-box {
@@ -252,10 +350,10 @@
 <body>
     <div class="container">
         <h1>Waveform Web Tool</h1>
-        <div class="dropzone" id="dropzone">
-            <p>Нажмите или перетащите аудиофайл сюда</p>
+        <div class="dropzone" id="dropzone" style="position: relative;">
+            <p style="pointer-events: none;">Нажмите или перетащите аудиофайл сюда</p>
+            <input type="file" id="fileInput" accept="audio/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 100;">
         </div>
-        <input type="file" id="fileInput" accept="audio/*" style="display: none">
         <div id="waveform"></div>
         
         <div id="playbackControls" style="display: none; text-align: center; margin-bottom: 20px;">
@@ -267,18 +365,20 @@
         <div class="controls" id="controls" style="display: none">
             <div class="control-group">
                 <label>Ширина видео</label>
-                <input type="number" id="width" value="800">
+                <input type="number" id="width" value="1000">
             </div>
             <div class="control-group">
                 <label>Высота видео</label>
-                <input type="number" id="height" value="100">
+                <input type="number" id="height" value="150">
             </div>
             <div class="control-group">
                 <label>Стиль волны</label>
-                <select id="waveType">
-                    <option value="bars">Современные столбики (Bars)</option>
-                    <option value="line">Классическая линия</option>
-                </select>
+                <div class="toggle-group" id="waveTypeContainer">
+                    <button class="toggle-btn active" data-value="bars">Line</button>
+                    <button class="toggle-btn" data-value="equalizer">Equalizer</button>
+                    <button class="toggle-btn" data-value="lissajous">Stars</button>
+                </div>
+                <input type="hidden" id="waveType" value="bars">
             </div>
             <div class="control-group">
                 <label>Цвет волны</label>
@@ -287,20 +387,13 @@
                     <span id="colorHex" style="font-size: 0.8rem; font-family: monospace;">#2ECC71</span>
                 </div>
             </div>
-            <div class="control-group" style="grid-column: span 2;">
-                <label>Предпросмотр стиля</label>
-                <div class="wave-preview-box">
-                    <div class="wave-sample" id="miniPreview">
-                        <div class="wave-bar" style="animation-delay: 0s"></div>
-                        <div class="wave-bar" style="animation-delay: 0.1s"></div>
-                        <div class="wave-bar" style="animation-delay: 0.2s"></div>
-                        <div class="wave-bar" style="animation-delay: 0.3s"></div>
-                        <div class="wave-bar" style="animation-delay: 0.4s"></div>
-                        <div class="wave-bar" style="animation-delay: 0.5s"></div>
-                        <div class="wave-bar" style="animation-delay: 0.6s"></div>
-                        <div class="wave-bar" style="animation-delay: 0.7s"></div>
-                    </div>
-                </div>
+            <div class="control-group">
+                <label>Чувствительность (Zoom)</label>
+                <input type="range" id="sensitivity" min="0.5" max="5" step="0.5" value="1.5">
+            </div>
+            <div class="control-group" id="thicknessGroup" style="display: none;">
+                <label>Толщина линий</label>
+                <input type="range" id="thickness" min="1" max="5" step="1" value="2">
             </div>
         </div>
         <button class="btn-generate" id="generateBtn">Создать видео</button>
@@ -360,16 +453,25 @@
                 console.warn("Cross-Origin Isolation is not active yet.");
             }
 
-            dropzone.onclick = () => fileInput.click();
             fileInput.onchange = (e) => {
                 const file = e.target.files[0];
                 if (file) handleFile(file);
+                fileInput.value = '';
             };
 
-            dropzone.ondragover = (e) => { e.preventDefault(); dropzone.style.borderColor = 'var(--primary)'; };
-            dropzone.ondragleave = () => { dropzone.style.borderColor = 'rgba(255, 255, 255, 0.2)'; };
+            dropzone.ondragover = (e) => { 
+                e.preventDefault(); 
+                dropzone.style.borderColor = 'var(--primary)'; 
+                dropzone.style.background = 'rgba(46, 204, 113, 0.05)';
+            };
+            dropzone.ondragleave = () => { 
+                dropzone.style.borderColor = 'rgba(255, 255, 255, 0.2)'; 
+                dropzone.style.background = 'transparent';
+            };
             dropzone.ondrop = (e) => {
                 e.preventDefault();
+                dropzone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                dropzone.style.background = 'transparent';
                 const file = e.dataTransfer.files[0];
                 if (file && file.type.startsWith('audio/')) handleFile(file);
             };
@@ -390,7 +492,9 @@
                     width: document.getElementById('width').value,
                     height: document.getElementById('height').value,
                     waveType: document.getElementById('waveType').value,
-                    waveColor: document.getElementById('waveColor').value
+                    waveColor: document.getElementById('waveColor').value,
+                    sensitivity: document.getElementById('sensitivity').value,
+                    thickness: document.getElementById('thickness').value
                 };
                 localStorage.setItem('waveform_settings', JSON.stringify(settings));
             }
@@ -400,64 +504,150 @@
                 const saved = localStorage.getItem('waveform_settings');
                 if (saved) {
                     const settings = JSON.parse(saved);
-                    document.getElementById('width').value = settings.width || 800;
-                    document.getElementById('height').value = settings.height || 100;
+                    document.getElementById('width').value = settings.width || 1000;
+                    document.getElementById('height').value = settings.height || 150;
                     document.getElementById('waveType').value = settings.waveType || 'bars';
                     document.getElementById('waveColor').value = settings.waveColor || '#2ecc71';
+                    if (settings.sensitivity) document.getElementById('sensitivity').value = settings.sensitivity;
+                    if (settings.thickness) document.getElementById('thickness').value = settings.thickness;
                 }
             }
 
             // Живое обновление настроек
             function updateSettings() {
-                const color = document.getElementById('waveColor').value;
-                const type = document.getElementById('waveType').value;
-                document.getElementById('colorHex').innerText = color.toUpperCase();
+                const colorInput = document.getElementById('waveColor');
+                const typeInput = document.getElementById('waveType');
+                const zoomInput = document.getElementById('sensitivity');
+                const thicknessInput = document.getElementById('thickness');
                 
-                // Обновляем мини-превью
-                const bars = document.querySelectorAll('.wave-bar');
-                bars.forEach(bar => {
-                    bar.style.backgroundColor = color;
-                    bar.style.width = (type === 'bars') ? '6px' : '20px';
-                    bar.style.borderRadius = (type === 'bars') ? '10px' : '0';
-                    bar.style.marginRight = (type === 'bars') ? '4px' : '-19px';
-                });
+                if (!colorInput || !typeInput || !zoomInput || !thicknessInput) return;
+
+                const color = colorInput.value;
+                const type = typeInput.value;
+                const zoom = zoomInput.value;
+                
+                const colorHex = document.getElementById('colorHex');
+                if (colorHex) colorHex.innerText = color.toUpperCase();
+                
+                // Показываем ползунок толщины только для Bars
+                const thicknessGroup = document.getElementById('thicknessGroup');
+                if (thicknessGroup) {
+                    thicknessGroup.style.display = (type === 'bars') ? 'block' : 'none';
+                }
 
                 // Обновляем основную волну
-                if (wavesurfer && wavesurfer.isReady) {
-                    const isBars = type === 'bars';
-                    wavesurfer.setOptions({
-                        waveColor: color,
-                        barWidth: isBars ? 6 : 0,
-                        barGap: isBars ? 4 : 0,
-                        barRadius: isBars ? 10 : 0,
-                    });
+                if (wavesurfer) {
+                    try {
+                        const waveformEl = document.getElementById('waveform');
+                        waveformEl.classList.remove('stars-active');
+                        waveformEl.style.setProperty('--glow-color', color);
+
+                        let wsOptions = {
+                            waveColor: color,
+                            barHeight: Math.min(zoom, 2),
+                            height: 120,
+                            barWidth: 0,
+                            barGap: 0,
+                            barRadius: 0
+                        };
+
+                        if (type === 'bars') {
+                            wsOptions.barWidth = 8;
+                            wsOptions.barGap = 5;
+                            wsOptions.barRadius = 4;
+                        } else if (type === 'equalizer') {
+                            wsOptions.barWidth = 3;
+                            wsOptions.barGap = 1;
+                            wsOptions.barRadius = 0;
+                        } else if (type === 'stars') {
+                            wsOptions.barWidth = 4;
+                            wsOptions.barGap = 14; 
+                            wsOptions.barRadius = 10;
+                            waveformEl.classList.add('stars-active');
+                        }
+
+                        wavesurfer.setOptions(wsOptions);
+                    } catch (e) {
+                        console.warn("WaveSurfer not ready for options update yet");
+                    }
                 }
                 saveSettings();
             }
 
             document.getElementById('waveColor').oninput = updateSettings;
-            document.getElementById('waveType').onchange = updateSettings;
+            document.getElementById('sensitivity').oninput = updateSettings;
+            document.getElementById('thickness').oninput = updateSettings;
+            
+            // Обработка переключателей стиля
+            const styleButtons = document.querySelectorAll('#waveTypeContainer .toggle-btn');
+            styleButtons.forEach(btn => {
+                btn.onclick = () => {
+                    styleButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById('waveType').value = btn.dataset.value;
+                    updateSettings();
+                };
+            });
+
             document.getElementById('width').oninput = saveSettings;
             document.getElementById('height').oninput = saveSettings;
 
             // Инициализация
             loadSettings();
+            
+            // Синхронизируем кнопки с загруженными настройками
+            const currentStyle = document.getElementById('waveType').value;
+            styleButtons.forEach(btn => {
+                if(btn.dataset.value === currentStyle) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
             updateSettings();
 
             function initWaveform(file) {
                 if (wavesurfer) wavesurfer.destroy();
-                const isBars = document.getElementById('waveType').value === 'bars';
-                wavesurfer = WaveSurfer.create({
+                
+                const type = document.getElementById('waveType').value;
+                const color = document.getElementById('waveColor').value;
+                const zoom = document.getElementById('sensitivity').value;
+
+                let wsOptions = {
                     container: '#waveform',
-                    waveColor: document.getElementById('waveColor').value,
+                    waveColor: color,
                     progressColor: '#ffffff',
-                    barWidth: isBars ? 6 : 0, 
-                    barGap: isBars ? 4 : 0, 
-                    barRadius: isBars ? 10 : 0,
-                    height: 120, interactive: true
-                });
+                    barHeight: Math.min(zoom, 2),
+                    height: 120,
+                    interactive: true,
+                    barWidth: 0,
+                    barGap: 0,
+                    barRadius: 0
+                };
+
+                const waveformEl = document.getElementById('waveform');
+                waveformEl.classList.remove('stars-active');
+                waveformEl.style.setProperty('--glow-color', color);
+
+                if (type === 'bars') {
+                    wsOptions.barWidth = 8;
+                    wsOptions.barGap = 5;
+                    wsOptions.barRadius = 4;
+                } else if (type === 'equalizer') {
+                    wsOptions.barWidth = 3;
+                    wsOptions.barGap = 1;
+                    wsOptions.barRadius = 0;
+                } else if (type === 'stars') {
+                    wsOptions.barWidth = 4;
+                    wsOptions.barGap = 14; 
+                    wsOptions.barRadius = 10;
+                    waveformEl.classList.add('stars-active');
+                }
+
+                wavesurfer = WaveSurfer.create(wsOptions);
                 wavesurfer.load(URL.createObjectURL(file));
-                document.getElementById('waveform').style.display = 'block';
+                waveformEl.style.display = 'block';
             }
 
             playBtn.onclick = () => wavesurfer && wavesurfer.playPause();
@@ -476,7 +666,6 @@
                         await ffmpeg.load({
                             coreURL: await toBlobURL('ffmpeg/ffmpeg-core.js', 'text/javascript'),
                             wasmURL: await toBlobURL('ffmpeg/ffmpeg-core.wasm', 'application/wasm'),
-                            workerURL: await toBlobURL('ffmpeg/814.ffmpeg.js', 'text/javascript'),
                         });
                     }
 
@@ -489,25 +678,81 @@
                         status.innerText = `Рендеринг: ${Math.round(progress * 100)}%`;
                     });
 
-                    await ffmpeg.writeFile(audioFile.name, await fetchFile(audioFile));
+                    ffmpeg.on('log', ({ message }) => {
+                        console.log('FFmpeg Log:', message);
+                    });
 
-                    const width = document.getElementById('width').value;
-                    const height = document.getElementById('height').value;
-                    const color = document.getElementById('waveColor').value.replace('#', '0x');
+                    // Используем фиксированное имя файла, чтобы избежать проблем со спецсимволами
+                    const inputExt = audioFile.name.substring(audioFile.name.lastIndexOf('.'));
+                    const inputName = 'input' + inputExt;
+                    await ffmpeg.writeFile(inputName, await fetchFile(audioFile));
+
+                    // Убеждаемся, что размеры четные (обязательно для видеокодеков)
+                    const w = Math.floor(document.getElementById('width').value / 2) * 2;
+                    const h = Math.floor(document.getElementById('height').value / 2) * 2;
+                    
+                    const hexColor = document.getElementById('waveColor').value;
+                    const color = hexColor.replace('#', '0x');
+                    const colorFfmpeg = hexColor.replace('#', '0x'); // Для фильтров, где 0x работает лучше
                     const type = document.getElementById('waveType').value;
+                    const zoom = parseFloat(document.getElementById('sensitivity').value);
+                    const thickness = parseInt(document.getElementById('thickness').value);
 
-                    let filter = `showwaves=s=${width}x${height}:mode=cline:colors=${color}`;
+                    // Коэффициент усиления (Sensitivity)
+                    const volumeGain = zoom; 
+
+                    // Конвертация HEX в RGB
+                    const r = parseInt(hexColor.slice(1, 3), 16);
+                    const g = parseInt(hexColor.slice(3, 5), 16);
+                    const b = parseInt(hexColor.slice(5, 7), 16);
+
+                    // Принудительно в стерео и 44.1kHz для стабильности фильтров
+                    const stereoFix = 'aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo';
+
+                    let complexFilter = '';
                     if (type === 'bars') {
-                        // Улучшенные скругленные столбики: 
-                        // уменьшаем количество (60 вместо 120), добавляем небольшое размытие для скругления 
-                        // и масштабируем сглаженным алгоритмом
-                        filter = `showwaves=s=60x${height}:mode=cline:colors=${color},gblur=sigma=1,scale=${width}:${height}:flags=bicubic`;
+                        // Bars (теперь называется Line): используем p2p + dilation
+                        // Чтобы сохранить цвет при толщине, нужно использовать формат gbrp (RGB) перед dilation
+                        let barsFilter = `[0:a]${stereoFix},volume=${volumeGain},showwaves=s=${w}x${h}:mode=p2p:colors=${colorFfmpeg}:r=25,format=gbrp`;
+                        
+                        // Добавляем эффект толщины. В GBRP цвете dilation сохраняет оттенки.
+                        for (let i = 1; i < thickness; i++) {
+                            barsFilter += `,dilation=coordinates=255`;
+                        }
+                        complexFilter = `${barsFilter},format=yuv420p[v]`;
+                    } else if (type === 'equalizer') {
+                        // Equalizer: Исправляем цвет! Для showfreqs используем синтаксис 'color' в одиночных кавычках
+                        const halfH = Math.floor(h / 2);
+                        complexFilter = `[0:a]${stereoFix},volume=${volumeGain},showfreqs=s=${w}x${halfH}:mode=bar:colors='${hexColor}':fscale=log:ascale=sqrt:r=25:averaging=0.9:win_size=4096[top];[top]split[t1][t2];[t2]vflip[bot];[t1][bot]vstack,format=yuv420p[v]`;
+                    } else if (type === 'lissajous') {
+                        // Stars: lissajous
+                        const lissajousZoom = Math.max(1, zoom);
+                        complexFilter = `[0:a]${stereoFix},volume=${volumeGain},adelay=0|10,avectorscope=s=${w}x${h}:m=lissajous:rc=${r}:gc=${g}:bc=${b}:r=25:draw=dot:zoom=${lissajousZoom},format=yuv420p[v]`;
+                    } else {
+                        // Line: классическая линия
+                        complexFilter = `[0:a]${stereoFix},volume=${volumeGain},showwaves=s=${w}x${h}:mode=line:colors=${color}:r=25,format=yuv420p[v]`;
                     }
 
-                    await ffmpeg.exec(['-i', audioFile.name, '-filter_complex', `[0:a]${filter},format=yuv420p[v]`, '-map', '[v]', '-map', '0:a', '-c:v', 'libx264', '-preset', 'ultrafast', 'output.mp4']);
+                    const result = await ffmpeg.exec([
+                        '-y',
+                        '-i', inputName, 
+                        '-filter_complex', complexFilter, 
+                        '-map', '[v]', 
+                        '-map', '0:a', 
+                        '-c:v', 'libx264', 
+                        '-pix_fmt', 'yuv420p',
+                        '-preset', 'ultrafast',
+                        '-crf', '28',
+                        'output.mp4'
+                    ]);
+                    
+                    if (result !== 0) throw new Error("FFmpeg error code: " + result);
 
                     const data = await ffmpeg.readFile('output.mp4');
                     const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+                    
+                    // Расчет размера файла
+                    const sizeInMB = (data.length / (1024 * 1024)).toFixed(2);
                     
                     // Показываем видео в плеере
                     const resultSection = document.getElementById('resultSection');
@@ -516,6 +761,7 @@
                     
                     outputVideo.src = url;
                     downloadBtn.href = url;
+                    downloadBtn.innerHTML = `Скачать видео (${sizeInMB} MB)`;
                     downloadBtn.download = audioFile.name.split('.')[0] + '_waveform.mp4';
                     
                     resultSection.style.display = 'block';
@@ -524,7 +770,7 @@
                     generateBtn.disabled = false;
                 } catch (err) {
                     console.error(err);
-                    status.innerText = 'Ошибка: ' + err.message;
+                    status.innerText = 'Ошибка: ' + (err.message || err);
                     generateBtn.disabled = false;
                 }
             };
