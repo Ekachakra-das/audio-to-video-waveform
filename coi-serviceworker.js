@@ -9,22 +9,24 @@ if (typeof window === "undefined") {
         }
 
         event.respondWith(
-            fetch(event.request).then((response) => {
-                if (response.status === 0) {
-                    return response;
-                }
+            fetch(event.request)
+                .then((response) => {
+                    if (response.status === 0) return response;
 
-                const newHeaders = new Headers(response.headers);
-                newHeaders.set("Cross-Origin-Embedder-Policy", "require-corp");
-                newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
-                newHeaders.set("Cross-Origin-Resource-Policy", "cross-origin");
+                    const newHeaders = new Headers(response.headers);
+                    newHeaders.set("Cross-Origin-Embedder-Policy", "require-corp");
+                    newHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
+                    newHeaders.set("Cross-Origin-Resource-Policy", "cross-origin");
 
-                return new Response(response.body, {
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: newHeaders,
-                });
-            })
+                    return new Response(response.body, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: newHeaders,
+                    });
+                })
+                .catch((err) => {
+                    return fetch(event.request);
+                })
         );
     });
 } else {

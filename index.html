@@ -323,17 +323,15 @@
     </div>
     <!-- Scripts -->
     <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/umd/ffmpeg.js"></script>
-    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
     
-    <script>
+    <script type="module">
+        import { FFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/esm/index.js';
+        import { fetchFile, toBlobURL } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js';
+
         // Глобальные переменные
         let audioFile = null;
         let wavesurfer = null;
         let ffmpeg = null;
-
-        const { FFmpeg } = FFmpegWASM;
-        const { fetchFile, toBlobURL } = FFmpegUtil;
 
         // UI Initialization
         function initApp() {
@@ -430,13 +428,14 @@
                         status.innerText = 'Загрузка ядра FFmpeg (30MB)...';
                         ffmpeg = new FFmpeg();
                         
-                        // Решение проблемы SecurityError на GitHub Pages
-                        // Используем UMD версию core и загружаем через Blob, чтобы обойти ограничения Origin для Worker
-                        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+                        // Используем проверенную ESM версию 0.12.4 для ядра
+                        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm';
+                        
                         await ffmpeg.load({
                             coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
                             wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-                            workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
+                            // ФИКС: Явно загружаем воркер самой библиотеки через Blob
+                            workerURL: await toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/esm/worker.js', 'text/javascript'),
                         });
                     }
 
