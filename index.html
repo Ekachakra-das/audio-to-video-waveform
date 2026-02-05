@@ -4,7 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Waveform Web Tool</title>
+    <title>Audio to Video Waveform - Создать видео из аудио онлайн</title>
+    <meta name="description" content="Бесплатный онлайн инструмент для создания видео с визуализацией аудиоволны. Конвертируйте MP3 в MP4 с красивой анимацией волны.">
+    <meta name="keywords" content="audio to video, waveform visualizer, видео из аудио, визуализация звука онлайн, mp3 в mp4, аудио волна видео">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Audio to Video Waveform Visualizer">
+    <meta property="og:description" content="Создавайте красивые видео с аудиоволной за считанные секунды прямо в браузере.">
+    <meta property="og:image" content="https://ekachakra-das.github.io/audio-to-video-waveform/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="Audio to Video Waveform Visualizer">
+    <meta property="twitter:description" content="Бесплатный инструмент для визуализации аудио в видео.">
+
     <!-- Cross-Origin Isolation Service Worker -->
     <script src="coi-serviceworker.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -100,9 +114,78 @@
         select {
             background: rgba(15, 23, 42, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 12px;
             color: white;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
+        }
+
+        /* Улучшенный селектор цвета */
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 4px 12px;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            background: none;
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+
+        .wave-preview-box {
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .wave-sample {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            height: 60%;
+        }
+
+        .wave-bar {
+            width: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+            animation: wave-anim 1.2s ease-in-out infinite;
+        }
+
+        @keyframes wave-anim {
+            0%, 100% { height: 20%; }
+            50% { height: 100%; }
         }
 
         .btn-generate {
@@ -182,8 +265,14 @@
         </div>
 
         <div class="controls" id="controls" style="display: none">
-            <div class="control-group"><label>Ширина видео</label><input type="number" id="width" value="1280"></div>
-            <div class="control-group"><label>Высота видео</label><input type="number" id="height" value="720"></div>
+            <div class="control-group">
+                <label>Ширина видео</label>
+                <input type="number" id="width" value="1280">
+            </div>
+            <div class="control-group">
+                <label>Высота видео</label>
+                <input type="number" id="height" value="720">
+            </div>
             <div class="control-group">
                 <label>Стиль волны</label>
                 <select id="waveType">
@@ -191,7 +280,27 @@
                     <option value="line">Классическая линия</option>
                 </select>
             </div>
-            <div class="control-group"><label>Цвет волны</label><input type="color" id="waveColor" value="#2ecc71">
+            <div class="control-group">
+                <label>Цвет волны</label>
+                <div class="color-picker-container">
+                    <input type="color" id="waveColor" value="#2ecc71">
+                    <span id="colorHex" style="font-size: 0.8rem; font-family: monospace;">#2ECC71</span>
+                </div>
+            </div>
+            <div class="control-group" style="grid-column: span 2;">
+                <label>Предпросмотр стиля</label>
+                <div class="wave-preview-box">
+                    <div class="wave-sample" id="miniPreview">
+                        <div class="wave-bar" style="animation-delay: 0s"></div>
+                        <div class="wave-bar" style="animation-delay: 0.1s"></div>
+                        <div class="wave-bar" style="animation-delay: 0.2s"></div>
+                        <div class="wave-bar" style="animation-delay: 0.3s"></div>
+                        <div class="wave-bar" style="animation-delay: 0.4s"></div>
+                        <div class="wave-bar" style="animation-delay: 0.5s"></div>
+                        <div class="wave-bar" style="animation-delay: 0.6s"></div>
+                        <div class="wave-bar" style="animation-delay: 0.7s"></div>
+                    </div>
+                </div>
             </div>
         </div>
         <button class="btn-generate" id="generateBtn">Создать видео</button>
@@ -199,11 +308,23 @@
         <div class="progress-bar" id="progressBar">
             <div class="progress-fill" id="progressFill"></div>
         </div>
+
+        <!-- SEO Content -->
+        <div class="seo-content" style="margin-top: 50px; font-size: 0.9rem; color: #64748b; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 30px;">
+            <h2 style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 15px;">Как работает онлайн визуализатор аудио?</h2>
+            <p>Наш онлайн сервис Audio to Video Waveform позволяет бесплатно создать эффектное видео с анимацией звуковой волны из любого аудиофайла (MP3, WAV, AAC). Это идеальное решение для музыкантов, подкастеров и создателей контента для YouTube, Instagram и TikTok.</p>
+            <ul style="padding-left: 20px; list-style-type: disc;">
+                <li>Без регистрации и загрузки файлов на сервер (всё обрабатывается в вашем браузере).</li>
+                <li>Настройка цвета и стиля волны (столбики или классическая линия).</li>
+                <li>Высокое качество видео (Full HD 1080p или 720p).</li>
+                <li>Быстрый рендеринг благодаря технологии FFmpeg.wasm.</li>
+            </ul>
+        </div>
     </div>
     <!-- Scripts -->
     <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/umd/ffmpeg.js" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/umd/ffmpeg.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
     
     <script>
         // Глобальные переменные
@@ -251,6 +372,39 @@
                 status.innerText = `Файл выбран: ${file.name}`;
             }
 
+            // Живое обновление настроек
+            function updateSettings() {
+                const color = document.getElementById('waveColor').value;
+                const type = document.getElementById('waveType').value;
+                document.getElementById('colorHex').innerText = color.toUpperCase();
+                
+                // Обновляем мини-превью
+                const bars = document.querySelectorAll('.wave-bar');
+                bars.forEach(bar => {
+                    bar.style.backgroundColor = color;
+                    bar.style.width = (type === 'bars') ? '4px' : '20px';
+                    bar.style.borderRadius = (type === 'bars') ? '2px' : '0';
+                    bar.style.marginRight = (type === 'bars') ? '2px' : '-19px';
+                });
+
+                // Обновляем основную волну
+                if (wavesurfer && wavesurfer.isReady) {
+                    const isBars = type === 'bars';
+                    wavesurfer.setOptions({
+                        waveColor: color,
+                        barWidth: isBars ? 3 : 0,
+                        barGap: isBars ? 2 : 0,
+                        barRadius: isBars ? 4 : 0,
+                    });
+                }
+            }
+
+            document.getElementById('waveColor').oninput = updateSettings;
+            document.getElementById('waveType').onchange = updateSettings;
+
+            // Инициализация начальных значений
+            updateSettings();
+
             function initWaveform(file) {
                 if (wavesurfer) wavesurfer.destroy();
                 const isBars = document.getElementById('waveType').value === 'bars';
@@ -276,11 +430,13 @@
                         status.innerText = 'Загрузка ядра FFmpeg (30MB)...';
                         ffmpeg = new FFmpeg();
                         
-                        // Официальный фикс для Worker и CORS
-                        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm';
+                        // Решение проблемы SecurityError на GitHub Pages
+                        // Используем UMD версию core и загружаем через Blob, чтобы обойти ограничения Origin для Worker
+                        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
                         await ffmpeg.load({
                             coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
                             wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+                            workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
                         });
                     }
 
