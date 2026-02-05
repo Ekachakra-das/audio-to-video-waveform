@@ -202,21 +202,20 @@
     </div>
     <!-- Scripts -->
     <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/umd/ffmpeg.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js" crossorigin="anonymous"></script>
     
-    <script type="module">
-        // Helper to load cross-origin scripts as blobs to bypass worker security
-        async function getBlobURL(url, type) {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            return URL.createObjectURL(new Blob([blob], { type }));
-        }
-
+    <script>
+        // Глобальные переменные
         let audioFile = null;
         let wavesurfer = null;
         let ffmpeg = null;
 
+        const { FFmpeg } = FFmpegWASM;
+        const { fetchFile, toBlobURL } = FFmpegUtil;
+
         // UI Initialization
-        const initUI = () => {
+        function initApp() {
             const fileInput = document.getElementById('fileInput');
             const dropzone = document.getElementById('dropzone');
             const generateBtn = document.getElementById('generateBtn');
@@ -225,8 +224,8 @@
 
             // Проверка изоляции
             if (!window.crossOriginIsolated) {
-                console.warn("Cross-Origin Isolation is not active. FFmpeg might fail.");
-                status.innerHTML = '<span style="color: #e74c3c">⚠️ Внимание: Режим изоляции не активен. Перезагрузите страницу (F5).</span>';
+                status.innerHTML = '<span style="color: #f1c40f">🔄 Активация режима изоляции... Перезагрузите страницу (F5).</span>';
+                console.warn("Cross-Origin Isolation is not active yet.");
             }
 
             dropzone.onclick = () => fileInput.click();
@@ -268,25 +267,17 @@
 
             playBtn.onclick = () => wavesurfer && wavesurfer.playPause();
 
-            // FFmpeg Generation
             generateBtn.onclick = async () => {
                 const progressFill = document.getElementById('progressFill');
                 const progressBar = document.getElementById('progressBar');
 
                 try {
                     if (!ffmpeg) {
-                        status.innerText = 'Подготовка библиотек (Blob-proxy)...';
-                        
-                        // Dynamically import FFmpeg using a trick to avoid origin issues
-                        const ffmpegURL = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/index.js';
-                        const utilURL = 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/index.js';
-                        
-                        const { FFmpeg } = await import(ffmpegURL);
-                        const { fetchFile, toBlobURL } = await import(utilURL);
-
+                        status.innerText = 'Загрузка ядра FFmpeg (30MB)...';
                         ffmpeg = new FFmpeg();
-                        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm';
                         
+                        // Официальный фикс для Worker и CORS
+                        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm';
                         await ffmpeg.load({
                             coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
                             wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
@@ -302,7 +293,6 @@
                         status.innerText = `Рендеринг: ${Math.round(progress * 100)}%`;
                     });
 
-                    const { fetchFile } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/index.js');
                     await ffmpeg.writeFile(audioFile.name, await fetchFile(audioFile));
 
                     const width = document.getElementById('width').value;
@@ -327,9 +317,10 @@
                     generateBtn.disabled = false;
                 }
             };
-        };
+        }
 
-        initUI();
+        // Ждем загрузки всех ресурсов
+        window.addEventListener('load', initApp);
     </script>
 </body>
 
