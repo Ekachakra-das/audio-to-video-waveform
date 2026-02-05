@@ -5,13 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Audio to Video Waveform - Создать видео из аудио онлайн</title>
-    <meta name="description" content="Бесплатный онлайн инструмент для создания видео с визуализацией аудиоволны. Конвертируйте MP3 в MP4 с красивой анимацией волны.">
-    <meta name="keywords" content="audio to video, waveform visualizer, видео из аудио, визуализация звука онлайн, mp3 в mp4, аудио волна видео">
-    
+    <meta name="description"
+        content="Бесплатный онлайн инструмент для создания видео с визуализацией аудиоволны. Конвертируйте MP3 в MP4 с красивой анимацией волны.">
+    <meta name="keywords"
+        content="audio to video, waveform visualizer, видео из аудио, визуализация звука онлайн, mp3 в mp4, аудио волна видео">
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Audio to Video Waveform Visualizer">
-    <meta property="og:description" content="Создавайте красивые видео с аудиоволной за считанные секунды прямо в браузере.">
+    <meta property="og:description"
+        content="Создавайте красивые видео с аудиоволной за считанные секунды прямо в браузере.">
     <meta property="og:image" content="https://ekachakra-das.github.io/audio-to-video-waveform/og-image.jpg">
 
     <!-- Twitter -->
@@ -65,6 +68,16 @@
             background: linear-gradient(to right, #2ecc71, #27ae60);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        h1 svg {
+            width: 32px;
+            height: 32px;
+            filter: drop-shadow(0 0 10px rgba(0, 208, 120, 0.4));
         }
 
         .dropzone {
@@ -101,48 +114,71 @@
         }
 
         @keyframes stars-pulse {
-            0%, 100% { opacity: 0.7; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
+
+            0%,
+            100% {
+                opacity: 0.7;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
         }
 
         #waveform.stars-active {
             animation: stars-pulse 2s infinite ease-in-out;
         }
 
+        #waveform.bg-space {
+            background: url('space-bg.webp') center/cover no-repeat;
+        }
+
         .controls {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 40px 70px; /* 40px вертикальный отступ, 70px горизонтальный */
+            gap: 40px 70px;
+            /* 40px вертикальный отступ, 70px горизонтальный */
             margin-bottom: 30px;
-            align-items: end; /* Выравнивание по нижней линии */
+            align-items: end;
+            /* Выравнивание по нижней линии */
         }
 
-        /* Общий стиль для всех ползунков */
+        /* Google Material Sliders - Fully Rounded */
         input[type="range"] {
             -webkit-appearance: none;
             width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
+            height: 4px;
+            /* Slightly thicker for pill look */
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            /* Fully rounded pill */
             outline: none;
             margin: 15px 0;
+            cursor: pointer;
         }
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 18px;
-            height: 18px;
-            background: #2ecc71; /* Основной цвет по умолчанию */
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
-            transition: all 0.2s;
+            box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-            background: #27ae60;
+            box-shadow: 0 0 0 8px rgba(46, 204, 113, 0.15);
+            transform: scale(1.1);
+        }
+
+        input[type="range"]:active::-webkit-slider-thumb {
+            box-shadow: 0 0 0 12px rgba(46, 204, 113, 0.25);
+            transform: scale(1.1);
         }
 
         .control-group {
@@ -158,9 +194,8 @@
 
         .toggle-group {
             display: flex;
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
             padding: 4px;
             gap: 4px;
         }
@@ -197,20 +232,26 @@
         }
 
         input,
+        input[type="number"],
         select {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 12px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px 4px 0 0;
+            padding: 10px 0;
             color: white;
             font-family: inherit;
             outline: none;
             transition: all 0.2s;
+            width: 100%;
+            font-size: 1rem;
         }
 
-        input:focus, select:focus {
+        input[type="number"]:focus,
+        select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 2px var(--primary-glow);
+            background: rgba(255, 255, 255, 0.02);
+            box-shadow: none;
         }
 
         /* Улучшенный селектор цвета */
@@ -244,9 +285,21 @@
         }
 
         @keyframes stars-pulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.02); opacity: 1; filter: brightness(1.2) blur(0.5px); }
-            100% { transform: scale(1); opacity: 0.8; }
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.02);
+                opacity: 1;
+                filter: brightness(1.2) blur(0.5px);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
         }
 
         .stars-active {
@@ -282,8 +335,15 @@
         }
 
         @keyframes wave-anim {
-            0%, 100% { height: 20%; }
-            50% { height: 100%; }
+
+            0%,
+            100% {
+                height: 20%;
+            }
+
+            50% {
+                height: 100%;
+            }
         }
 
         .btn-generate {
@@ -305,6 +365,17 @@
             color: #94a3b8;
         }
 
+        input[type="range"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            outline: none;
+        }
+
         .progress-bar {
             width: 100%;
             height: 4px;
@@ -322,40 +393,250 @@
             transition: width 0.3s ease;
         }
 
+        #waveform {
+            width: 100%;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #waveform canvas {
+            transition: opacity 0.4s ease;
+        }
+
+        #waveform.bg-space {
+            background-image: url('space-bg.webp');
+            background-size: cover;
+            background-position: center;
+        }
+
+        #waveform.bg-space::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #ffffff;
+            box-shadow: 0 0 10px white, 0 0 20px var(--glow-color, var(--primary));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        #waveform.bg-space.minimal-line::after {
+            opacity: 1;
+            animation: spacePulse 2s infinite ease-in-out;
+        }
+
+        @keyframes spacePulse {
+            0% {
+                box-shadow: 0 0 10px white, 0 0 20px var(--glow-color, var(--primary));
+                transform: scaleY(1);
+            }
+
+            50% {
+                box-shadow: 0 0 15px white, 0 0 30px var(--glow-color, var(--primary)), 0 0 45px var(--glow-color, var(--primary));
+                transform: scaleY(1.5);
+            }
+
+            100% {
+                box-shadow: 0 0 10px white, 0 0 20px var(--glow-color, var(--primary));
+                transform: scaleY(1);
+            }
+        }
+
+
+        #waveform.bg-space.minimal-line canvas,
+        #waveform.bg-line canvas {
+            display: block !important;
+            opacity: 0 !important;
+            /* Hide visually but keep interactive for clicks/seeking */
+        }
+
+        #waveform.bg-space.minimal-line,
+        #waveform.bg-line {
+            cursor: pointer;
+        }
+
+        /* Line mode (Bars): Dual-image progress effect */
+        #waveform.bg-line {
+            background-image: url('line-bg2.webp');
+            /* White line background (unplayed) */
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* No display:none on canvas here to keep interaction */
+
+        #lineOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            /* ALWAYS full width */
+            background-image: url('line-bg.webp');
+            /* Green line foreground (played) */
+            background-size: 100% 100%;
+            /* Identical scaling for perfect overlap */
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 4;
+            display: none;
+            pointer-events: none;
+            clip-path: inset(0 100% 0 0);
+            /* Revealed by JS */
+            transition: none;
+            /* Instant update for pixel perfection */
+        }
+
+        #waveform.bg-line #lineOverlay {
+            display: block;
+        }
+
+        #seekPoint {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 12px;
+            height: 12px;
+            background: #ffffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px white, 0 0 20px var(--glow-color, var(--primary));
+            z-index: 10;
+            display: none;
+            pointer-events: none;
+            /* Let clicks pass through */
+            transition: left 0.1s linear;
+        }
+
+        #waveform.bg-space.minimal-line #seekPoint {
+            display: block;
+            animation: pointPulse 1s infinite alternate ease-in-out;
+        }
+
+        /* Vertical Line for Space Mode */
+        #waveform.bg-space.minimal-line #seekPoint::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 120px;
+            background: #ffffff;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px white, 0 0 20px var(--glow-color, var(--primary));
+            z-index: -1;
+        }
+
+        @keyframes pointPulse {
+            from {
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 0 10px white;
+            }
+
+            to {
+                transform: translate(-50%, -50%) scale(1.3);
+                box-shadow: 0 0 20px white, 0 0 30px var(--glow-color, var(--primary));
+            }
+        }
+
+        /* Progress div logic for other modes */
+        #waveform>div:not(#lineOverlay) {
+            transition: width 0.1s linear !important;
+        }
+
+        input[type="number"] {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            width: 100%;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
         .btn-play {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            padding: 10px 20px;
+            padding: 12px 0;
+            width: 200px;
+            /* RIGID WIDTH */
             border-radius: 30px;
             cursor: pointer;
             font-family: inherit;
-            transition: all 0.2s;
-            display: inline-flex;
+            transition: background 0.2s;
+            display: inline-grid;
+            grid-template-columns: 40px auto;
+            /* Rigid columns */
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            gap: 0;
+            white-space: nowrap;
+            box-sizing: border-box;
+            position: relative;
         }
 
         .btn-play:hover {
             background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
         }
 
         #playIcon {
             font-size: 1.2rem;
+            width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Waveform Web Tool</h1>
+        <h1>
+            AUDIO to VIDEO WAVEFORM
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"
+                id="Music-Equalizer--Streamline-Flex-Gradient" height="14" width="14">
+                <desc>Music Equalizer Streamline Icon: https://streamlinehq.com</desc>
+                <g id="music-equalizer--music-audio-note-wave-sound-equalizer-entertainment 1">
+                    <path id="Union" fill="url(#paint0_linear_9380_2969)" fill-rule="evenodd"
+                        d="M7.75025.751953c0-.414213-.33579-.74999988-.75-.74999988-.41422 0-.75.33578688-.75.74999988V13.2478c0 .4142.33578.75.75.75.41421 0 .75-.3358.75-.75V.751953ZM3.87477 2.4049c.41422 0 .75.33578.75.75v7.6898c0 .4142-.33578.75-.75.75-.41421 0-.75-.3358-.75-.75V3.1549c0-.41422.33579-.75.75-.75ZM.749512 4.80811c.414218 0 .750008.33578.750008.75v2.88366c0 .41421-.33579.75-.750008.75-.414214 0-.750000281-.33579-.750000281-.75V5.55811c0-.41422.335786281-.75.750000281-.75ZM10.1251 2.4049c.4142 0 .75.33578.75.75v7.6898c0 .4142-.3358.75-.75.75-.41427 0-.75005-.3358-.75005-.75V3.1549c0-.41422.33578-.75.75005-.75ZM14 5.55811c0-.41422-.3357-.75-.75-.75-.4142 0-.75.33578-.75.75v2.88366c0 .41421.3358.75.75.75.4143 0 .75-.33579.75-.75V5.55811Z"
+                        clip-rule="evenodd"></path>
+                </g>
+                <defs>
+                    <linearGradient id="paint0_linear_9380_2969" x1=".538" x2="16.492" y1="1.133" y2="10.128"
+                        gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#00d078"></stop>
+                        <stop offset="1" stop-color="#007df0"></stop>
+                    </linearGradient>
+                </defs>
+            </svg>
+        </h1>
         <div class="dropzone" id="dropzone" style="position: relative;">
             <p style="pointer-events: none;">Нажмите или перетащите аудиофайл сюда</p>
-            <input type="file" id="fileInput" accept="audio/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 100;">
+            <input type="file" id="fileInput" accept="audio/*"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 100;">
         </div>
-        <div id="waveform"></div>
-        
+        <div id="waveform">
+            <div id="seekPoint"></div>
+            <div id="lineOverlay"></div>
+        </div>
+
         <div id="playbackControls" style="display: none; text-align: center; margin-bottom: 20px;">
             <button id="playBtn" class="btn-play">
                 <span id="playIcon">▶</span> Play / Pause
@@ -376,7 +657,7 @@
                 <div class="toggle-group" id="waveTypeContainer">
                     <button class="toggle-btn active" data-value="bars">Line</button>
                     <button class="toggle-btn" data-value="equalizer">Equalizer</button>
-                    <button class="toggle-btn" data-value="lissajous">Stars</button>
+                    <button class="toggle-btn" data-value="space">Space</button>
                 </div>
                 <input type="hidden" id="waveType" value="bars">
             </div>
@@ -403,20 +684,27 @@
         </div>
 
         <!-- Секция для готового видео -->
-        <div id="resultSection" style="display: none; margin-top: 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+        <div id="resultSection"
+            style="display: none; margin-top: 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
             <h3 style="color: #94a3b8; font-size: 1rem; margin-bottom: 15px;">Результат готов:</h3>
-            <video id="outputVideo" controls style="width: 100%; border-radius: 12px; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></video>
+            <video id="outputVideo" controls
+                style="width: 100%; border-radius: 12px; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></video>
             <div style="margin-top: 20px;">
-                <a id="downloadBtn" class="btn-generate" style="display: inline-block; text-decoration: none; width: auto; padding: 12px 30px;">
+                <a id="downloadBtn" class="btn-generate"
+                    style="display: inline-block; text-decoration: none; width: auto; padding: 12px 30px;">
                     📥 Скачать видео
                 </a>
             </div>
         </div>
 
         <!-- SEO Content -->
-        <div class="seo-content" style="margin-top: 50px; font-size: 0.9rem; color: #64748b; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 30px;">
-            <h2 style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 15px;">Как работает онлайн визуализатор аудио?</h2>
-            <p>Наш онлайн сервис Audio to Video Waveform позволяет бесплатно создать эффектное видео с анимацией звуковой волны из любого аудиофайла (MP3, WAV, AAC). Это идеальное решение для музыкантов, подкастеров и создателей контента для YouTube, Instagram и TikTok.</p>
+        <div class="seo-content"
+            style="margin-top: 50px; font-size: 0.9rem; color: #64748b; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 30px;">
+            <h2 style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 15px;">Как работает онлайн визуализатор аудио?
+            </h2>
+            <p>Наш онлайн сервис Audio to Video Waveform позволяет бесплатно создать эффектное видео с анимацией
+                звуковой волны из любого аудиофайла (MP3, WAV, AAC). Это идеальное решение для музыкантов, подкастеров и
+                создателей контента для YouTube, Instagram и TikTok.</p>
             <ul style="padding-left: 20px; list-style-type: disc;">
                 <li>Без регистрации и загрузки файлов на сервер (всё обрабатывается в вашем браузере).</li>
                 <li>Настройка цвета и стиля волны (столбики или классическая линия).</li>
@@ -429,7 +717,7 @@
     <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
     <script src="ffmpeg/ffmpeg.js"></script>
     <script src="ffmpeg/util.js"></script>
-    
+
     <script>
         // Глобальные переменные
         let audioFile = null;
@@ -459,13 +747,13 @@
                 fileInput.value = '';
             };
 
-            dropzone.ondragover = (e) => { 
-                e.preventDefault(); 
-                dropzone.style.borderColor = 'var(--primary)'; 
+            dropzone.ondragover = (e) => {
+                e.preventDefault();
+                dropzone.style.borderColor = 'var(--primary)';
                 dropzone.style.background = 'rgba(46, 204, 113, 0.05)';
             };
-            dropzone.ondragleave = () => { 
-                dropzone.style.borderColor = 'rgba(255, 255, 255, 0.2)'; 
+            dropzone.ondragleave = () => {
+                dropzone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
                 dropzone.style.background = 'transparent';
             };
             dropzone.ondrop = (e) => {
@@ -479,9 +767,10 @@
             function handleFile(file) {
                 audioFile = file;
                 initWaveform(file);
+                document.getElementById('dropzone').style.display = 'none'; // Скрываем загрузку
                 document.getElementById('controls').style.display = 'grid';
                 document.getElementById('playbackControls').style.display = 'block';
-                document.getElementById('resultSection').style.display = 'none'; // Скрываем старое видео
+                document.getElementById('resultSection').style.display = 'none';
                 generateBtn.style.display = 'block';
                 status.innerText = `Файл выбран: ${file.name}`;
             }
@@ -519,16 +808,16 @@
                 const typeInput = document.getElementById('waveType');
                 const zoomInput = document.getElementById('sensitivity');
                 const thicknessInput = document.getElementById('thickness');
-                
+
                 if (!colorInput || !typeInput || !zoomInput || !thicknessInput) return;
 
                 const color = colorInput.value;
                 const type = typeInput.value;
                 const zoom = zoomInput.value;
-                
+
                 const colorHex = document.getElementById('colorHex');
                 if (colorHex) colorHex.innerText = color.toUpperCase();
-                
+
                 // Показываем ползунок толщины только для Bars
                 const thicknessGroup = document.getElementById('thicknessGroup');
                 if (thicknessGroup) {
@@ -539,31 +828,46 @@
                 if (wavesurfer) {
                     try {
                         const waveformEl = document.getElementById('waveform');
-                        waveformEl.classList.remove('stars-active');
+                        waveformEl.classList.remove('stars-active', 'bg-space', 'minimal-line', 'bg-line');
                         waveformEl.style.setProperty('--glow-color', color);
 
+                        // Set bg-width for the line progress reveal
+                        const currentWidth = document.getElementById('width').value;
+                        waveformEl.style.setProperty('--bg-width', `${currentWidth}px`);
+
+                        // Default canvas visibility
+                        const canvas = waveformEl.querySelector('canvas');
+                        if (canvas) canvas.style.opacity = '1';
+
                         let wsOptions = {
-                            waveColor: color,
-                            barHeight: Math.min(zoom, 2),
                             height: 120,
-                            barWidth: 0,
-                            barGap: 0,
-                            barRadius: 0
+                            cursorWidth: 2,
+                            cursorColor: '#ffffff',
+                            normalize: true
                         };
 
                         if (type === 'bars') {
-                            wsOptions.barWidth = 8;
-                            wsOptions.barGap = 5;
-                            wsOptions.barRadius = 4;
+                            // Line (Bars): Two-image progress effect
+                            wsOptions.waveColor = 'transparent';
+                            wsOptions.progressColor = 'transparent';
+                            wsOptions.barWidth = 2; // For interaction
+                            wsOptions.barHeight = 120;
+                            waveformEl.classList.add('bg-line');
                         } else if (type === 'equalizer') {
-                            wsOptions.barWidth = 3;
-                            wsOptions.barGap = 1;
+                            // Equalizer: Thin continuous line
+                            wsOptions.waveColor = color;
+                            wsOptions.progressColor = '#ffffff';
+                            wsOptions.barWidth = 1;
+                            wsOptions.barGap = 0;
                             wsOptions.barRadius = 0;
-                        } else if (type === 'stars') {
-                            wsOptions.barWidth = 4;
-                            wsOptions.barGap = 14; 
-                            wsOptions.barRadius = 10;
-                            waveformEl.classList.add('stars-active');
+                            wsOptions.barHeight = Math.min(zoom * 0.4, 1.0);
+                        } else if (type === 'space') {
+                            // Space: Decorative only
+                            wsOptions.waveColor = 'transparent';
+                            wsOptions.progressColor = 'transparent';
+                            wsOptions.barWidth = 2; // For interaction
+                            wsOptions.barHeight = 120;
+                            waveformEl.classList.add('bg-space', 'minimal-line');
                         }
 
                         wavesurfer.setOptions(wsOptions);
@@ -571,13 +875,14 @@
                         console.warn("WaveSurfer not ready for options update yet");
                     }
                 }
-                saveSettings();
             }
+            saveSettings();
+
 
             document.getElementById('waveColor').oninput = updateSettings;
             document.getElementById('sensitivity').oninput = updateSettings;
             document.getElementById('thickness').oninput = updateSettings;
-            
+
             // Обработка переключателей стиля
             const styleButtons = document.querySelectorAll('#waveTypeContainer .toggle-btn');
             styleButtons.forEach(btn => {
@@ -594,11 +899,11 @@
 
             // Инициализация
             loadSettings();
-            
+
             // Синхронизируем кнопки с загруженными настройками
             const currentStyle = document.getElementById('waveType').value;
             styleButtons.forEach(btn => {
-                if(btn.dataset.value === currentStyle) {
+                if (btn.dataset.value === currentStyle) {
                     btn.classList.add('active');
                 } else {
                     btn.classList.remove('active');
@@ -609,48 +914,82 @@
 
             function initWaveform(file) {
                 if (wavesurfer) wavesurfer.destroy();
-                
+
                 const type = document.getElementById('waveType').value;
                 const color = document.getElementById('waveColor').value;
                 const zoom = document.getElementById('sensitivity').value;
+                const waveformEl = document.getElementById('waveform'); // Definition added here
+
+                waveformEl.classList.remove('bg-space', 'minimal-line', 'bg-line'); // Clear previous styles
 
                 let wsOptions = {
                     container: '#waveform',
-                    waveColor: color,
                     progressColor: '#ffffff',
-                    barHeight: Math.min(zoom, 2),
+                    cursorColor: '#ffffff',
+                    cursorWidth: 2,
                     height: 120,
                     interactive: true,
-                    barWidth: 0,
-                    barGap: 0,
-                    barRadius: 0
+                    normalize: true
                 };
 
-                const waveformEl = document.getElementById('waveform');
-                waveformEl.classList.remove('stars-active');
-                waveformEl.style.setProperty('--glow-color', color);
-
                 if (type === 'bars') {
-                    wsOptions.barWidth = 8;
-                    wsOptions.barGap = 5;
-                    wsOptions.barRadius = 4;
+                    wsOptions.waveColor = 'transparent';
+                    wsOptions.progressColor = 'transparent';
+                    wsOptions.barWidth = 2;
+                    wsOptions.barHeight = 120;
+                    waveformEl.classList.add('bg-line');
                 } else if (type === 'equalizer') {
-                    wsOptions.barWidth = 3;
-                    wsOptions.barGap = 1;
+                    wsOptions.waveColor = color;
+                    wsOptions.progressColor = '#ffffff';
+                    wsOptions.barWidth = 1;
+                    wsOptions.barGap = 0;
                     wsOptions.barRadius = 0;
-                } else if (type === 'stars') {
-                    wsOptions.barWidth = 4;
-                    wsOptions.barGap = 14; 
-                    wsOptions.barRadius = 10;
-                    waveformEl.classList.add('stars-active');
+                    wsOptions.barHeight = Math.min(zoom * 0.4, 1.0);
+                } else if (type === 'space') {
+                    wsOptions.waveColor = 'transparent';
+                    wsOptions.progressColor = 'transparent';
+                    wsOptions.barWidth = 2;
+                    wsOptions.barHeight = 120;
+                    waveformEl.classList.add('bg-space', 'minimal-line');
                 }
 
+                wsOptions.cursorWidth = 2;
+                wsOptions.cursorColor = '#ffffff';
+                wsOptions.normalize = true;
+
                 wavesurfer = WaveSurfer.create(wsOptions);
+                wavesurfer.on('play', () => {
+                    document.getElementById('playIcon').innerText = '⏸';
+                });
+                wavesurfer.on('pause', () => {
+                    document.getElementById('playIcon').innerText = '▶';
+                });
+
+                // Update custom seek components
+                const seekPoint = document.getElementById('seekPoint');
+                const lineOverlay = document.getElementById('lineOverlay');
+
+                const syncUI = (currentTime) => {
+                    const duration = wavesurfer.getDuration();
+                    if (duration > 0) {
+                        const percent = (currentTime / duration) * 100;
+                        seekPoint.style.left = `${percent}%`;
+                        // Pixel-perfect reveal: the overlay is 100% width, 
+                        // but we clip it to reveal the progress.
+                        lineOverlay.style.clipPath = `inset(0 ${100 - percent}% 0 0)`;
+                    }
+                };
+
+                wavesurfer.on('timeupdate', syncUI);
+                wavesurfer.on('interaction', () => syncUI(wavesurfer.getCurrentTime()));
+
                 wavesurfer.load(URL.createObjectURL(file));
                 waveformEl.style.display = 'block';
             }
 
             playBtn.onclick = () => wavesurfer && wavesurfer.playPause();
+
+
 
             generateBtn.onclick = async () => {
                 const progressFill = document.getElementById('progressFill');
@@ -660,7 +999,7 @@
                     if (!ffmpeg) {
                         status.innerText = 'Загрузка ядра FFmpeg (30MB)...';
                         ffmpeg = new FFmpeg();
-                        
+
                         // ФИНАЛЬНОЕ РЕШЕНИЕ: Загружаем всё локально
                         // Это на 100% убирает ошибки SecurityError и CORS
                         await ffmpeg.load({
@@ -690,7 +1029,7 @@
                     // Убеждаемся, что размеры четные (обязательно для видеокодеков)
                     const w = Math.floor(document.getElementById('width').value / 2) * 2;
                     const h = Math.floor(document.getElementById('height').value / 2) * 2;
-                    
+
                     const hexColor = document.getElementById('waveColor').value;
                     const color = hexColor.replace('#', '0x');
                     const colorFfmpeg = hexColor.replace('#', '0x'); // Для фильтров, где 0x работает лучше
@@ -699,7 +1038,7 @@
                     const thickness = parseInt(document.getElementById('thickness').value);
 
                     // Коэффициент усиления (Sensitivity)
-                    const volumeGain = zoom; 
+                    const volumeGain = zoom;
 
                     // Конвертация HEX в RGB
                     const r = parseInt(hexColor.slice(1, 3), 16);
@@ -714,18 +1053,19 @@
                         // Bars (теперь называется Line): используем p2p + dilation
                         // Чтобы сохранить цвет при толщине, нужно использовать формат gbrp (RGB) перед dilation
                         let barsFilter = `[0:a]${stereoFix},volume=${volumeGain},showwaves=s=${w}x${h}:mode=p2p:colors=${colorFfmpeg}:r=25,format=gbrp`;
-                        
+
                         // Добавляем эффект толщины. В GBRP цвете dilation сохраняет оттенки.
                         for (let i = 1; i < thickness; i++) {
                             barsFilter += `,dilation=coordinates=255`;
                         }
                         complexFilter = `${barsFilter},format=yuv420p[v]`;
                     } else if (type === 'equalizer') {
-                        // Equalizer: Исправляем цвет! Для showfreqs используем синтаксис 'color' в одиночных кавычках
+                        // Equalizer: Explicitly set colors for BOTH channels to fix white color bug
                         const halfH = Math.floor(h / 2);
-                        complexFilter = `[0:a]${stereoFix},volume=${volumeGain},showfreqs=s=${w}x${halfH}:mode=bar:colors='${hexColor}':fscale=log:ascale=sqrt:r=25:averaging=0.9:win_size=4096[top];[top]split[t1][t2];[t2]vflip[bot];[t1][bot]vstack,format=yuv420p[v]`;
-                    } else if (type === 'lissajous') {
-                        // Stars: lissajous
+                        // colors=c1|c2 ensures support for stereo without fallback to default white
+                        complexFilter = `[0:a]${stereoFix},volume=${volumeGain},showfreqs=s=${w}x${halfH}:mode=bar:colors=${colorFfmpeg}|${colorFfmpeg}:fscale=log:ascale=sqrt:r=25:averaging=0.9:win_size=4096[top];[top]split[t1][t2];[t2]vflip[bot];[t1][bot]vstack,format=yuv420p[v]`;
+                    } else if (type === 'space') {
+                        // Stars/Space: lissajous
                         const lissajousZoom = Math.max(1, zoom);
                         complexFilter = `[0:a]${stereoFix},volume=${volumeGain},adelay=0|10,avectorscope=s=${w}x${h}:m=lissajous:rc=${r}:gc=${g}:bc=${b}:r=25:draw=dot:zoom=${lissajousZoom},format=yuv420p[v]`;
                     } else {
@@ -735,35 +1075,35 @@
 
                     const result = await ffmpeg.exec([
                         '-y',
-                        '-i', inputName, 
-                        '-filter_complex', complexFilter, 
-                        '-map', '[v]', 
-                        '-map', '0:a', 
-                        '-c:v', 'libx264', 
+                        '-i', inputName,
+                        '-filter_complex', complexFilter,
+                        '-map', '[v]',
+                        '-map', '0:a',
+                        '-c:v', 'libx264',
                         '-pix_fmt', 'yuv420p',
                         '-preset', 'ultrafast',
                         '-crf', '28',
                         'output.mp4'
                     ]);
-                    
+
                     if (result !== 0) throw new Error("FFmpeg error code: " + result);
 
                     const data = await ffmpeg.readFile('output.mp4');
                     const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-                    
+
                     // Расчет размера файла
                     const sizeInMB = (data.length / (1024 * 1024)).toFixed(2);
-                    
+
                     // Показываем видео в плеере
                     const resultSection = document.getElementById('resultSection');
                     const outputVideo = document.getElementById('outputVideo');
                     const downloadBtn = document.getElementById('downloadBtn');
-                    
+
                     outputVideo.src = url;
                     downloadBtn.href = url;
                     downloadBtn.innerHTML = `Скачать видео (${sizeInMB} MB)`;
                     downloadBtn.download = audioFile.name.split('.')[0] + '_waveform.mp4';
-                    
+
                     resultSection.style.display = 'block';
                     progressBar.style.display = 'none';
                     status.innerText = 'Видео успешно создано!';
@@ -774,9 +1114,10 @@
                     generateBtn.disabled = false;
                 }
             };
-        }
 
-        // Ждем загрузки всех ресурсов
+
+        }; // End of initApp
+
         window.addEventListener('load', initApp);
     </script>
 </body>
