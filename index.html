@@ -202,53 +202,46 @@
     </div>
     <!-- Scripts -->
     <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/umd/ffmpeg.js"></script>
-    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
     
-    <script>
-        // Global variables
+    <script type="module">
+        // Helper to load cross-origin scripts as blobs to bypass worker security
+        async function getBlobURL(url, type) {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            return URL.createObjectURL(new Blob([blob], { type }));
+        }
+
         let audioFile = null;
         let wavesurfer = null;
         let ffmpeg = null;
 
-        function initApp() {
-            const { FFmpeg } = FFmpegWASM;
-            const { fetchFile, toBlobURL } = FFmpegUtil;
-
+        // UI Initialization
+        const initUI = () => {
             const fileInput = document.getElementById('fileInput');
             const dropzone = document.getElementById('dropzone');
             const generateBtn = document.getElementById('generateBtn');
             const status = document.getElementById('status');
             const playBtn = document.getElementById('playBtn');
-            const progressFill = document.getElementById('progressFill');
-            const progressBar = document.getElementById('progressBar');
 
-            console.log("App Initialized");
+            // Проверка изоляции
+            if (!window.crossOriginIsolated) {
+                console.warn("Cross-Origin Isolation is not active. FFmpeg might fail.");
+                status.innerHTML = '<span style="color: #e74c3c">⚠️ Внимание: Режим изоляции не активен. Перезагрузите страницу (F5).</span>';
+            }
 
-            dropzone.addEventListener('click', () => fileInput.click());
-
-            fileInput.addEventListener('change', (e) => {
+            dropzone.onclick = () => fileInput.click();
+            fileInput.onchange = (e) => {
                 const file = e.target.files[0];
                 if (file) handleFile(file);
-            });
+            };
 
-            dropzone.addEventListener('dragover', (e) => {
+            dropzone.ondragover = (e) => { e.preventDefault(); dropzone.style.borderColor = 'var(--primary)'; };
+            dropzone.ondragleave = () => { dropzone.style.borderColor = 'rgba(255, 255, 255, 0.2)'; };
+            dropzone.ondrop = (e) => {
                 e.preventDefault();
-                dropzone.style.borderColor = 'var(--primary)';
-            });
-
-            dropzone.addEventListener('dragleave', () => {
-                dropzone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            });
-
-            dropzone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropzone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
                 const file = e.dataTransfer.files[0];
-                if (file && file.type.startsWith('audio/')) {
-                    handleFile(file);
-                }
-            });
+                if (file && file.type.startsWith('audio/')) handleFile(file);
+            };
 
             function handleFile(file) {
                 audioFile = file;
@@ -261,41 +254,39 @@
 
             function initWaveform(file) {
                 if (wavesurfer) wavesurfer.destroy();
-                
                 const isBars = document.getElementById('waveType').value === 'bars';
-                const color = document.getElementById('waveColor').value;
-
                 wavesurfer = WaveSurfer.create({
                     container: '#waveform',
-                    waveColor: color,
+                    waveColor: document.getElementById('waveColor').value,
                     progressColor: '#ffffff',
-                    barWidth: isBars ? 3 : 0,
-                    barGap: isBars ? 2 : 0,
-                    barRadius: isBars ? 4 : 0,
-                    height: 120,
-                    interactive: true
+                    barWidth: isBars ? 3 : 0, barGap: isBars ? 2 : 0, barRadius: isBars ? 4 : 0,
+                    height: 120, interactive: true
                 });
-                
                 wavesurfer.load(URL.createObjectURL(file));
                 document.getElementById('waveform').style.display = 'block';
-                
-                wavesurfer.on('play', () => document.getElementById('playIcon').innerText = '⏸');
-                wavesurfer.on('pause', () => document.getElementById('playIcon').innerText = '▶');
             }
 
-            playBtn.addEventListener('click', () => {
-                if (wavesurfer) wavesurfer.playPause();
-            });
+            playBtn.onclick = () => wavesurfer && wavesurfer.playPause();
 
-            document.getElementById('waveType').onchange = () => audioFile && initWaveform(audioFile);
-            document.getElementById('waveColor').onchange = () => audioFile && initWaveform(audioFile);
-
+            // FFmpeg Generation
             generateBtn.onclick = async () => {
+                const progressFill = document.getElementById('progressFill');
+                const progressBar = document.getElementById('progressBar');
+
                 try {
                     if (!ffmpeg) {
-                        status.innerText = 'Загрузка ядра FFmpeg (30MB)...';
+                        status.innerText = 'Подготовка библиотек (Blob-proxy)...';
+                        
+                        // Dynamically import FFmpeg using a trick to avoid origin issues
+                        const ffmpegURL = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.7/dist/index.js';
+                        const utilURL = 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/index.js';
+                        
+                        const { FFmpeg } = await import(ffmpegURL);
+                        const { fetchFile, toBlobURL } = await import(utilURL);
+
                         ffmpeg = new FFmpeg();
                         const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm';
+                        
                         await ffmpeg.load({
                             coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
                             wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
@@ -311,8 +302,8 @@
                         status.innerText = `Рендеринг: ${Math.round(progress * 100)}%`;
                     });
 
-                    const { name } = audioFile;
-                    await ffmpeg.writeFile(name, await fetchFile(audioFile));
+                    const { fetchFile } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/index.js');
+                    await ffmpeg.writeFile(audioFile.name, await fetchFile(audioFile));
 
                     const width = document.getElementById('width').value;
                     const height = document.getElementById('height').value;
@@ -320,25 +311,13 @@
                     const type = document.getElementById('waveType').value;
 
                     let filter = `showwaves=s=${width}x${height}:mode=cline:colors=${color}`;
-                    if (type === 'bars') {
-                        filter += `,scale=120:${height}:flags=neighbor,scale=${width}:${height}:flags=neighbor`;
-                    }
+                    if (type === 'bars') filter += `,scale=120:${height}:flags=neighbor,scale=${width}:${height}:flags=neighbor`;
 
-                    await ffmpeg.exec([
-                        '-i', name,
-                        '-filter_complex', `[0:a]${filter},format=yuv420p[v]`,
-                        '-map', '[v]', '-map', '0:a',
-                        '-c:v', 'libx264', '-preset', 'ultrafast',
-                        'output.mp4'
-                    ]);
+                    await ffmpeg.exec(['-i', audioFile.name, '-filter_complex', `[0:a]${filter},format=yuv420p[v]`, '-map', '[v]', '-map', '0:a', '-c:v', 'libx264', '-preset', 'ultrafast', 'output.mp4']);
 
                     const data = await ffmpeg.readFile('output.mp4');
                     const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-                    
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = name.split('.')[0] + '_waveform.mp4';
-                    a.click();
+                    const a = document.createElement('a'); a.href = url; a.download = audioFile.name.split('.')[0] + '_waveform.mp4'; a.click();
 
                     status.innerText = 'Готово!';
                     generateBtn.disabled = false;
@@ -348,14 +327,9 @@
                     generateBtn.disabled = false;
                 }
             };
-        }
+        };
 
-        // Run init
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            initApp();
-        }
+        initUI();
     </script>
 </body>
 
