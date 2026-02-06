@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>File Stats</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body { 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    padding: 40px 20px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  
+  h1 { 
+    color: #333; 
+    margin-bottom: 10px;
+    font-size: 32px;
+  }
+  
+  .subtitle {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 16px;
+  }
+  
+  .upload-area {
+    border: 3px dashed #ddd;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    background: #f9f9f9;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .upload-area:hover {
+    border-color: #667eea;
+    background: #f0f0ff;
+  }
+  
+  .upload-area.dragover {
+    border-color: #667eea;
+    background: #e8eaff;
+    transform: scale(1.02);
+  }
+  
+  .upload-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #667eea;
+  }
+  
+  .upload-text {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  
+  .upload-hint {
+    font-size: 14px;
+    color: #999;
+  }
+  
+  #folderPicker {
+    display: none;
+  }
+  
+  table { 
+    border-collapse: collapse; 
+    margin-top: 30px; 
+    width: 100%;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  th, td { 
+    padding: 16px; 
+    text-align: left; 
+  }
+  
+  th { 
+    background: #667eea; 
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+  
+  tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s ease;
+  }
+  
+  tbody tr:hover {
+    background: #f9f9f9;
+  }
+  
+  tbody tr:last-child {
+    border-bottom: none;
+  }
+  
+  .ext-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #667eea;
+    color: white;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  .count-cell {
+    color: #555;
+    font-weight: 500;
+  }
+  
+  .size-cell {
+    color: #666;
+    font-family: 'Courier New', monospace;
+  }
+  
+  .stats-summary {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  
+  .summary-item {
+    text-align: center;
+  }
+  
+  .summary-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 5px;
+  }
+  
+  .summary-label {
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  /* Toast Notifications */
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+  
+  .toast {
+    background: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    max-width: 400px;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: all;
+  }
+  
+  .toast.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  
+  .toast.hide {
+    opacity: 0;
+    transform: translateX(400px);
+  }
+  
+  .toast-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  
+  .toast-content {
+    flex: 1;
+  }
+  
+  .toast-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+  
+  .toast-message {
+    font-size: 13px;
+    color: #666;
+  }
+  
+  .toast.success {
+    border-left: 4px solid #10b981;
+  }
+  
+  .toast.success .toast-icon {
+    color: #10b981;
+  }
+  
+  .toast.error {
+    border-left: 4px solid #ef4444;
+  }
+  
+  .toast.error .toast-icon {
+    color: #ef4444;
+  }
+  
+  .toast.info {
+    border-left: 4px solid #3b82f6;
+  }
+  
+  .toast.info .toast-icon {
+    color: #3b82f6;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      padding: 20px;
+    }
+    
+    h1 {
+      font-size: 24px;
+    }
+    
+    .toast {
+      min-width: 280px;
+      max-width: calc(100vw - 40px);
+    }
+    
+    .toast-container {
+      right: 10px;
+      left: 10px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="container">
+  <h1>📊 File Statistics</h1>
+  <p class="subtitle">Analyze your folder structure and file distribution</p>
+  
+  <div class="upload-area" id="uploadArea">
+    <div class="upload-icon">📁</div>
+    <div class="upload-text">Choose a folder to analyze</div>
+    <div class="upload-hint">Click here or drag & drop a folder</div>
+    <input type="file" id="folderPicker" webkitdirectory directory multiple />
+  </div>
+  
+  <div id="summarySection" class="hidden">
+    <div class="stats-summary">
+      <div class="summary-item">
+        <div class="summary-value" id="totalFiles">0</div>
+        <div class="summary-label">Total Files</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-value" id="totalSize">0 MB</div>
+        <div class="summary-label">Total Size</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-value" id="fileTypes">0</div>
+        <div class="summary-label">File Types</div>
+      </div>
+    </div>
+  </div>
+  
+  <table id="statsTable" class="hidden">
+    <thead>
+      <tr>
+        <th>Extension</th>
+        <th>Count</th>
+        <th>Total Size</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+// Toast notification system
+const toastContainer = document.getElementById('toastContainer');
+
+function showToast(title, message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  
+  const icons = {
+    success: '✓',
+    error: '✕',
+    info: 'ℹ'
+  };
+  
+  toast.innerHTML = `
+    <div class="toast-icon">${icons[type] || icons.info}</div>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      <div class="toast-message">${message}</div>
+    </div>
+  `;
+  
+  toastContainer.appendChild(toast);
+  
+  // Trigger animation
+  setTimeout(() => toast.classList.add('show'), 10);
+  
+  // Auto remove after 4 seconds
+  setTimeout(() => {
+    toast.classList.remove('show');
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+// File handling
+const folderPicker = document.getElementById('folderPicker');
+const uploadArea = document.getElementById('uploadArea');
+const statsTable = document.getElementById('statsTable');
+const summarySection = document.getElementById('summarySection');
+const tbody = statsTable.querySelector('tbody');
+
+// Click to open file picker
+uploadArea.addEventListener('click', () => {
+  folderPicker.click();
+});
+
+// Drag and drop support
+uploadArea.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+  uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  
+  const items = e.dataTransfer.items;
+  if (items && items.length > 0) {
+    const item = items[0];
+    if (item.kind === 'file') {
+      const entry = item.webkitGetAsEntry();
+      if (entry && entry.isDirectory) {
+        showToast('Processing', 'Reading folder contents...', 'info');
+        readDirectory(entry);
+      } else {
+        showToast('Invalid Selection', 'Please drop a folder, not a file', 'error');
+      }
+    }
+  }
+});
+
+// Process files from input
+folderPicker.addEventListener('change', (event) => {
+  const files = Array.from(event.target.files);
+  
+  if (files.length === 0) {
+    showToast('No Files', 'No files were selected', 'error');
+    return;
+  }
+  
+  showToast('Processing', `Analyzing ${files.length} files...`, 'info');
+  processFiles(files);
+});
+
+function processFiles(files) {
+  const stats = {};
+  let totalSize = 0;
+  
+  files.forEach(file => {
+    // Get extension
+    let ext = file.name.split('.').pop().toLowerCase();
+    if (file.name.indexOf('.') === -1 || file.name.startsWith('.')) {
+      ext = 'no extension';
+    }
+    
+    // Initialize if needed
+    if (!stats[ext]) {
+      stats[ext] = { count: 0, size: 0 };
+    }
+    
+    // Update counters
+    stats[ext].count += 1;
+    stats[ext].size += file.size;
+    totalSize += file.size;
+  });
+  
+  // Update summary
+  document.getElementById('totalFiles').textContent = files.length.toLocaleString();
+  document.getElementById('totalSize').textContent = formatSize(totalSize);
+  document.getElementById('fileTypes').textContent = Object.keys(stats).length;
+  
+  // Clear table
+  tbody.innerHTML = '';
+  
+  // Populate table
+  Object.keys(stats)
+    .sort((a, b) => stats[b].count - stats[a].count)
+    .forEach(ext => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><span class="ext-badge">${ext}</span></td>
+        <td class="count-cell">${stats[ext].count.toLocaleString()}</td>
+        <td class="size-cell">${formatSize(stats[ext].size)}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  
+  // Show results
+  summarySection.classList.remove('hidden');
+  statsTable.classList.remove('hidden');
+  
+  showToast('Analysis Complete', `Found ${Object.keys(stats).length} different file types`, 'success');
+}
+
+function formatSize(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Read directory recursively (for drag & drop)
+async function readDirectory(entry) {
+  const files = [];
+  
+  async function traverse(dirEntry) {
+    const reader = dirEntry.createReader();
+    const entries = await new Promise((resolve, reject) => {
+      reader.readEntries(resolve, reject);
+    });
+    
+    for (const entry of entries) {
+      if (entry.isFile) {
+        const file = await new Promise((resolve, reject) => {
+          entry.file(resolve, reject);
+        });
+        files.push(file);
+      } else if (entry.isDirectory) {
+        await traverse(entry);
+      }
+    }
+  }
+  
+  try {
+    await traverse(entry);
+    if (files.length > 0) {
+      processFiles(files);
+    } else {
+      showToast('Empty Folder', 'No files found in the selected folder', 'error');
+    }
+  } catch (error) {
+    showToast('Error', 'Failed to read folder contents', 'error');
+    console.error(error);
+  }
+}
+</script>
+
+</body>
+</html>
