@@ -301,7 +301,7 @@ function initApp() {
             // Prevent background tab throttling with silent audio
             let silentAudio = null;
             try {
-                silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=');
+                silentAudio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAIlRTU0UAAAAOAAADTGF2ZjYyLjMuMTAwAAAAAAAAAAAAAAD/4zjAAAAAAAAAAAAASW5mbwAAAA8AAAAQAAAFWAA1NTU1NTVDQ0NDQ0NQUFBQUFBeXl5eXl5ra2tra2treXl5eXl5hoaGhoaGlJSUlJSUoaGhoaGhoa+vr6+vr7y8vLy8vMrKysrKytfX19fX19fl5eXl5eXy8vLy8vL///////8AAAAATGF2YzYyLjExAAAAAAAAAAAAAAAAJAKAAAAAAAAABVgIAJZpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/4xjEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjEOwAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjEdgAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjEsQAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/4xjExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=');
                 silentAudio.loop = true;
                 silentAudio.volume = 0.01; // Minimal volume just in case
                 await silentAudio.play().catch(e => console.warn("Silent audio failed:", e));
@@ -357,44 +357,46 @@ function initApp() {
                 complexFilter = `[0:a]${stereoFix},volume=${volumeGain},showwaves=s=${w}x${h}:mode=line:colors=${color}:r=25,format=yuv420p[v]`;
             }
 
-            const result = await ffmpeg.exec([
-                '-y',
-                '-i', inputName,
-                '-filter_complex', complexFilter,
-                '-map', '[v]',
-                '-map', '0:a',
-                '-c:v', 'libx264',
-                '-pix_fmt', 'yuv420p',
-                '-preset', 'faster',
-                '-crf', '32',
-                'output.mp4'
-            ]);
+            try {
+                const result = await ffmpeg.exec([
+                    '-y',
+                    '-i', inputName,
+                    '-filter_complex', complexFilter,
+                    '-map', '[v]',
+                    '-map', '0:a',
+                    '-c:v', 'libx264',
+                    '-pix_fmt', 'yuv420p',
+                    '-preset', 'veryfast',
+                    '-crf', '32',
+                    'output.mp4'
+                ]);
 
-            if (silentAudio) {
-                silentAudio.pause();
-                silentAudio = null;
+                if (result !== 0) throw new Error(t.ffmpegError + result);
+
+                const data = await ffmpeg.readFile('output.mp4');
+                const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+
+                const sizeInMB = (data.length / (1024 * 1024)).toFixed(2);
+
+                const resultSection = document.getElementById('resultSection');
+                const outputVideo = document.getElementById('outputVideo');
+                const downloadBtn = document.getElementById('downloadBtn');
+
+                outputVideo.src = url;
+                downloadBtn.href = url;
+                downloadBtn.innerHTML = `${t.downloadVideo} (${sizeInMB} MB)`;
+                downloadBtn.download = audioFile.name.split('.')[0] + '_waveform.mp4';
+
+                resultSection.style.display = 'block';
+                progressBar.style.display = 'none';
+                status.innerText = t.videoCreated;
+                generateBtn.disabled = false;
+            } finally {
+                if (silentAudio) {
+                    silentAudio.pause();
+                    silentAudio = null;
+                }
             }
-
-            if (result !== 0) throw new Error(t.ffmpegError + result);
-
-            const data = await ffmpeg.readFile('output.mp4');
-            const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-
-            const sizeInMB = (data.length / (1024 * 1024)).toFixed(2);
-
-            const resultSection = document.getElementById('resultSection');
-            const outputVideo = document.getElementById('outputVideo');
-            const downloadBtn = document.getElementById('downloadBtn');
-
-            outputVideo.src = url;
-            downloadBtn.href = url;
-            downloadBtn.innerHTML = `${t.downloadVideo} (${sizeInMB} MB)`;
-            downloadBtn.download = audioFile.name.split('.')[0] + '_waveform.mp4';
-
-            resultSection.style.display = 'block';
-            progressBar.style.display = 'none';
-            status.innerText = t.videoCreated;
-            generateBtn.disabled = false;
         } catch (err) {
             console.error(err);
             status.innerText = t.error + (err.message || err);
