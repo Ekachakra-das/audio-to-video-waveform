@@ -80,12 +80,20 @@
 
         <div class="controls" id="controls" style="display: none">
             <div class="control-group">
-                <label>Ширина видео</label>
-                <input type="number" id="width" value="1000">
+                <label>Размеры (ШxВ)</label>
+                <div class="controls-row">
+                    <input type="number" id="width" value="1000" class="input-small" title="Ширина">
+                    <input type="number" id="height" value="250" class="input-small" title="Высота">
+                </div>
             </div>
             <div class="control-group">
-                <label>Высота видео</label>
-                <input type="number" id="height" value="250">
+                <label>Приоритет</label>
+                <div class="toggle-group" id="renderPriorityContainer">
+                    <button class="toggle-btn active" data-value="speed">Скорость</button>
+                    <button class="toggle-btn" data-value="balanced">Баланс</button>
+                    <button class="toggle-btn" data-value="size">Вес файла</button>
+                </div>
+                <input type="hidden" id="renderPriority" value="speed">
             </div>
             <div class="control-group">
                 <label>Стиль волны</label>

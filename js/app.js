@@ -92,7 +92,8 @@ function initApp() {
             waveType: document.getElementById('waveType').value,
             waveColor: document.getElementById('waveColor').value,
             sensitivity: document.getElementById('sensitivity').value,
-            thickness: document.getElementById('thickness').value
+            thickness: document.getElementById('thickness').value,
+            renderPriority: document.getElementById('renderPriority').value
         };
         localStorage.setItem('waveform_settings', JSON.stringify(settings));
     }
@@ -107,6 +108,17 @@ function initApp() {
             document.getElementById('waveColor').value = settings.waveColor || '#2ecc71';
             if (settings.sensitivity) document.getElementById('sensitivity').value = settings.sensitivity;
             if (settings.thickness) document.getElementById('thickness').value = settings.thickness;
+            if (settings.renderPriority) {
+                document.getElementById('renderPriority').value = settings.renderPriority;
+                const pButtons = document.querySelectorAll('#renderPriorityContainer .toggle-btn');
+                pButtons.forEach(btn => {
+                    if (btn.dataset.value === settings.renderPriority) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
         }
     }
 
@@ -322,6 +334,21 @@ function initApp() {
             const inputName = 'input' + inputExt;
             await ffmpeg.writeFile(inputName, await fetchFile(audioFile));
 
+            // Video encoding parameters based on priority
+            const priority = document.getElementById('renderPriority').value;
+            let preset = 'ultrafast';
+            let crf = '28';
+
+            if (priority === 'balanced') {
+                preset = 'ultrafast';
+                crf = '32';
+            } else if (priority === 'size') {
+                preset = 'veryfast';
+                crf = '32';
+            }
+
+            console.log(`Rendering with priority: ${priority} (preset=${preset}, crf=${crf})`);
+
             const w = Math.floor(document.getElementById('width').value / 2) * 2;
             const h = Math.floor(document.getElementById('height').value / 2) * 2;
 
@@ -366,8 +393,8 @@ function initApp() {
                     '-map', '0:a',
                     '-c:v', 'libx264',
                     '-pix_fmt', 'yuv420p',
-                    '-preset', 'veryfast',
-                    '-crf', '32',
+                    '-preset', preset,
+                    '-crf', crf,
                     'output.mp4'
                 ]);
 

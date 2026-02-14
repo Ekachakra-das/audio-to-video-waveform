@@ -84,10 +84,13 @@ h1 svg {
 }
 
 @keyframes stars-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 0.7;
         transform: scale(1);
     }
+
     50% {
         opacity: 1;
         transform: scale(1.05);
@@ -151,6 +154,17 @@ input[type="range"]:active::-webkit-slider-thumb {
 
 .control-group.full-width {
     grid-column: span 2;
+}
+
+.controls-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.input-small {
+    padding: 8px 0;
+    font-size: 0.9rem;
 }
 
 .toggle-group {
@@ -242,12 +256,25 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 input[type="color"]::-webkit-color-swatch {
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 50%;
+    appearance: none;
 }
 
 @keyframes stars-pulse {
-    0% { transform: scale(1); opacity: 0.8; }
-    50% { transform: scale(1.02); opacity: 1; filter: brightness(1.2) blur(0.5px); }
-    100% { transform: scale(1); opacity: 0.8; }
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.02);
+        opacity: 1;
+        filter: brightness(1.2) blur(0.5px);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
 }
 
 .stars-active {
@@ -283,8 +310,15 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 @keyframes wave-anim {
-    0%, 100% { height: 20%; }
-    50% { height: 100%; }
+
+    0%,
+    100% {
+        height: 20%;
+    }
+
+    50% {
+        height: 100%;
+    }
 }
 
 .btn-generate {
@@ -366,9 +400,20 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 @keyframes spacePulse {
-    0% { box-shadow: 0 0 10px white, 0 0 20px var(--glow-color, var(--primary)); transform: scaleY(1); }
-    50% { box-shadow: 0 0 15px white, 0 0 30px var(--glow-color, var(--primary)), 0 0 45px var(--glow-color, var(--primary)); transform: scaleY(1.5); }
-    100% { box-shadow: 0 0 10px white, 0 0 20px var(--glow-color, var(--primary)); transform: scaleY(1); }
+    0% {
+        box-shadow: 0 0 10px white, 0 0 20px var(--glow-color, var(--primary));
+        transform: scaleY(1);
+    }
+
+    50% {
+        box-shadow: 0 0 15px white, 0 0 30px var(--glow-color, var(--primary)), 0 0 45px var(--glow-color, var(--primary));
+        transform: scaleY(1.5);
+    }
+
+    100% {
+        box-shadow: 0 0 10px white, 0 0 20px var(--glow-color, var(--primary));
+        transform: scaleY(1);
+    }
 }
 
 #waveform.bg-space.minimal-line canvas,
@@ -445,8 +490,15 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 @keyframes pointPulse {
-    from { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 10px white; }
-    to { transform: translate(-50%, -50%) scale(1.3); box-shadow: 0 0 20px white, 0 0 30px var(--glow-color, var(--primary)); }
+    from {
+        transform: translate(-50%, -50%) scale(1);
+        box-shadow: 0 0 10px white;
+    }
+
+    to {
+        transform: translate(-50%, -50%) scale(1.3);
+        box-shadow: 0 0 20px white, 0 0 30px var(--glow-color, var(--primary));
+    }
 }
 
 #waveform>div:not(#lineOverlay) {
