@@ -102,7 +102,7 @@ function initApp() {
         if (saved) {
             const settings = JSON.parse(saved);
             document.getElementById('width').value = settings.width || 1000;
-            document.getElementById('height').value = settings.height || 150;
+            document.getElementById('height').value = settings.height || 250;
             document.getElementById('waveType').value = settings.waveType || 'bars';
             document.getElementById('waveColor').value = settings.waveColor || '#2ecc71';
             if (settings.sensitivity) document.getElementById('sensitivity').value = settings.sensitivity;
@@ -298,6 +298,17 @@ function initApp() {
             progressBar.style.display = 'block';
             generateBtn.disabled = true;
 
+            // Prevent background tab throttling with silent audio
+            let silentAudio = null;
+            try {
+                silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=');
+                silentAudio.loop = true;
+                silentAudio.volume = 0.01; // Minimal volume just in case
+                await silentAudio.play().catch(e => console.warn("Silent audio failed:", e));
+            } catch (e) {
+                console.warn("Could not start background persistence audio:", e);
+            }
+
             ffmpeg.on('progress', ({ progress }) => {
                 progressFill.style.width = `${progress * 100}%`;
                 status.innerText = `${t.rendering}${Math.round(progress * 100)}%`;
@@ -354,10 +365,15 @@ function initApp() {
                 '-map', '0:a',
                 '-c:v', 'libx264',
                 '-pix_fmt', 'yuv420p',
-                '-preset', 'ultrafast',
-                '-crf', '28',
+                '-preset', 'faster',
+                '-crf', '32',
                 'output.mp4'
             ]);
+
+            if (silentAudio) {
+                silentAudio.pause();
+                silentAudio = null;
+            }
 
             if (result !== 0) throw new Error(t.ffmpegError + result);
 
