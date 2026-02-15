@@ -15,6 +15,7 @@ const translations = {
         ffmpegError: "FFmpeg error code: ",
         fileSelected: "File selected: ",
         videoCreated: "Video created successfully!",
+        videoCreatedWithTime: "Video created in {time}!",
         downloadVideo: "Download Video",
         error: "Error: ",
         isolationWarning: "🔄 Activating isolation mode... Please reload the page (F5).",
@@ -27,6 +28,7 @@ const translations = {
         ffmpegError: "Ошибка FFmpeg: ",
         fileSelected: "Файл выбран: ",
         videoCreated: "Видео успешно создано!",
+        videoCreatedWithTime: "Видео создано за {time}!",
         downloadVideo: "Скачать видео",
         error: "Ошибка: ",
         isolationWarning: "🔄 Активация режима изоляции... Перезагрузите страницу (F5).",
@@ -92,8 +94,7 @@ function initApp() {
             waveType: document.getElementById('waveType').value,
             waveColor: document.getElementById('waveColor').value,
             sensitivity: document.getElementById('sensitivity').value,
-            thickness: document.getElementById('thickness').value,
-            renderPriority: document.getElementById('renderPriority').value
+            thickness: document.getElementById('thickness').value
         };
         localStorage.setItem('waveform_settings', JSON.stringify(settings));
     }
@@ -108,17 +109,6 @@ function initApp() {
             document.getElementById('waveColor').value = settings.waveColor || '#2ecc71';
             if (settings.sensitivity) document.getElementById('sensitivity').value = settings.sensitivity;
             if (settings.thickness) document.getElementById('thickness').value = settings.thickness;
-            if (settings.renderPriority) {
-                document.getElementById('renderPriority').value = settings.renderPriority;
-                const pButtons = document.querySelectorAll('#renderPriorityContainer .toggle-btn');
-                pButtons.forEach(btn => {
-                    if (btn.dataset.value === settings.renderPriority) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
-            }
         }
     }
 
@@ -139,7 +129,7 @@ function initApp() {
 
         const thicknessGroup = document.getElementById('thicknessGroup');
         if (thicknessGroup) {
-            thicknessGroup.style.display = (type === 'bars') ? 'block' : 'none';
+            thicknessGroup.style.display = (type === 'bars' || type === 'equalizer') ? 'block' : 'none';
         }
 
         if (wavesurfer) {
@@ -205,8 +195,8 @@ function initApp() {
         };
     });
 
-    document.getElementById('width').oninput = saveSettings;
     document.getElementById('height').oninput = saveSettings;
+    document.getElementById('width').oninput = saveSettings;
 
     loadSettings();
 
@@ -308,7 +298,8 @@ function initApp() {
 
             status.innerText = t.processingVideo;
             progressBar.style.display = 'block';
-            generateBtn.disabled = true;
+            generateBtn.style.display = 'none';
+            const startTime = Date.now();
 
             // Prevent background tab throttling with silent audio
             let silentAudio = null;
@@ -334,20 +325,11 @@ function initApp() {
             const inputName = 'input' + inputExt;
             await ffmpeg.writeFile(inputName, await fetchFile(audioFile));
 
-            // Video encoding parameters based on priority
-            const priority = document.getElementById('renderPriority').value;
-            let preset = 'ultrafast';
-            let crf = '28';
+            // Video encoding parameters - ultrafast 40 for best speed and size
+            const preset = 'ultrafast';
+            const crf = '40';
 
-            if (priority === 'balanced') {
-                preset = 'ultrafast';
-                crf = '32';
-            } else if (priority === 'size') {
-                preset = 'veryfast';
-                crf = '32';
-            }
-
-            console.log(`Rendering with priority: ${priority} (preset=${preset}, crf=${crf})`);
+            console.log(`Rendering with preset=${preset}, crf=${crf}`);
 
             const w = Math.floor(document.getElementById('width').value / 2) * 2;
             const h = Math.floor(document.getElementById('height').value / 2) * 2;
@@ -416,8 +398,19 @@ function initApp() {
 
                 resultSection.style.display = 'block';
                 progressBar.style.display = 'none';
-                status.innerText = t.videoCreated;
-                generateBtn.disabled = false;
+
+                const totalSeconds = (Date.now() - startTime) / 1000;
+                let timeStr = "";
+                if (totalSeconds >= 60) {
+                    const mins = Math.floor(totalSeconds / 60);
+                    const secs = (totalSeconds % 60).toFixed(1);
+                    timeStr = lang === 'ru' ? `${mins} мин. ${secs} сек.` : `${mins}m ${secs}s`;
+                } else {
+                    timeStr = lang === 'ru' ? `${totalSeconds.toFixed(1)} сек.` : `${totalSeconds.toFixed(1)}s`;
+                }
+                status.innerText = t.videoCreatedWithTime.replace('{time}', timeStr);
+
+                generateBtn.style.display = 'block';
             } finally {
                 if (silentAudio) {
                     silentAudio.pause();
@@ -427,7 +420,7 @@ function initApp() {
         } catch (err) {
             console.error(err);
             status.innerText = t.error + (err.message || err);
-            generateBtn.disabled = false;
+            generateBtn.style.display = 'block';
         }
     };
 }

@@ -79,20 +79,12 @@
 
         <div class="controls" id="controls" style="display: none">
             <div class="control-group">
-                <label>Dimensions (WxH)</label>
-                <div class="controls-row">
-                    <input type="number" id="width" value="1000" class="input-small" title="Width">
-                    <input type="number" id="height" value="250" class="input-small" title="Height">
-                </div>
+                <label>Width</label>
+                <input type="number" id="width" value="1000" class="input-small" placeholder="1000">
             </div>
             <div class="control-group">
-                <label>Priority</label>
-                <div class="toggle-group" id="renderPriorityContainer">
-                    <button class="toggle-btn active" data-value="speed">Speed</button>
-                    <button class="toggle-btn" data-value="balanced">Balanced</button>
-                    <button class="toggle-btn" data-value="size">Small Size</button>
-                </div>
-                <input type="hidden" id="renderPriority" value="speed">
+                <label>Height</label>
+                <input type="number" id="height" value="250" class="input-small" placeholder="250">
             </div>
             <div class="control-group">
                 <label>Wave Style</label>
@@ -111,12 +103,12 @@
                 </div>
             </div>
             <div class="control-group">
-                <label>Priority</label>
-                <div class="toggle-group" id="renderPriorityContainer">
-                    <button class="toggle-btn active" data-value="speed">Speed</button>
-                    <button class="toggle-btn" data-value="size">File Size</button>
-                </div>
-                <input type="hidden" id="renderPriority" value="speed">
+                <label>Sensitivity (Zoom)</label>
+                <input type="range" id="sensitivity" min="0.5" max="5" step="0.5" value="1.5">
+            </div>
+            <div class="control-group" id="thicknessGroup" style="display: none;">
+                <label>Line Thickness</label>
+                <input type="range" id="thickness" min="1" max="5" step="1" value="2">
             </div>
         </div>
         <button class="btn-generate" id="generateBtn">Create Video</button>
