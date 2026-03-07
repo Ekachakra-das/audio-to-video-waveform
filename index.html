@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Audio to Video Waveform - Create Video with Audio Visualizer Online</title>
+    <title>Audio & Video to Waveform - Create Waveform Videos Online</title>
     <meta name="description"
-        content="Free online tool to create audio waveform videos. Convert MP3 to MP4 with beautiful wave animations for YouTube, Instagram, and TikTok.">
+        content="Free online tool to create waveform videos from audio and video files. Convert MP3, WAV, MP4, or MOV into animated MP4 visuals for YouTube, Instagram, and TikTok.">
     <meta name="keywords"
-        content="audio to video, waveform visualizer, music visualization online, mp3 to mp4, audio wave video generator">
+        content="audio to video, video to waveform, waveform visualizer, music visualization online, mp3 to mp4, mp4 waveform generator">
 
     <!-- SEO: Language Alternates -->
     <link rel="alternate" hreflang="en" href="https://ekachakra-das.github.io/audio-to-video-waveform/">
@@ -18,14 +18,14 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Audio to Video Waveform Visualizer">
-    <meta property="og:description" content="Create beautiful audio waveform videos in seconds right in your browser.">
+    <meta property="og:title" content="Audio & Video to Waveform Visualizer">
+    <meta property="og:description" content="Create waveform videos from audio or video files directly in your browser.">
     <meta property="og:image" content="https://ekachakra-das.github.io/audio-to-video-waveform/og-image.jpg">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="Audio to Video Waveform Visualizer">
-    <meta property="twitter:description" content="Free tool for audio visualization to video.">
+    <meta property="twitter:title" content="Audio & Video to Waveform Visualizer">
+    <meta property="twitter:description" content="Free tool for turning audio or video files into waveform videos.">
 
     <!-- Scripts and Styles -->
     <script src="coi-serviceworker.js"></script>
@@ -62,8 +62,8 @@
             </svg>
         </h1>
         <div class="dropzone" id="dropzone" style="position: relative;">
-            <p style="pointer-events: none;">Click or drag audio file here</p>
-            <input type="file" id="fileInput" accept="audio/*"
+            <p style="pointer-events: none;">Click or drag audio/video file here</p>
+            <input type="file" id="fileInput" accept="audio/*,video/*"
                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 100;">
         </div>
         <div id="waveform">
@@ -89,11 +89,11 @@
             <div class="control-group">
                 <label>Wave Style</label>
                 <div class="toggle-group" id="waveTypeContainer">
-                    <button class="toggle-btn active" data-value="bars">Line</button>
-                    <button class="toggle-btn" data-value="equalizer">Equalizer</button>
+                    <button class="toggle-btn active" data-value="equalizer">Equalizer</button>
+                    <button class="toggle-btn" data-value="bars">Line</button>
                     <button class="toggle-btn" data-value="space">Space</button>
                 </div>
-                <input type="hidden" id="waveType" value="bars">
+                <input type="hidden" id="waveType" value="equalizer">
             </div>
             <div class="control-group">
                 <label>Wave Color</label>
@@ -112,7 +112,7 @@
             </div>
         </div>
         <button class="btn-generate" id="generateBtn">Create Video</button>
-        <div id="status">Upload a file to start</div>
+        <div id="status">Upload an audio or video file to start</div>
         <div class="progress-bar" id="progressBar">
             <div class="progress-fill" id="progressFill"></div>
         </div>
@@ -134,16 +134,15 @@
         <!-- SEO Content -->
         <div class="seo-content"
             style="margin-top: 50px; font-size: 0.9rem; color: #64748b; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 30px;">
-            <h2 style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 15px;">How does the online audio visualizer
+            <h2 style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 15px;">How does the online waveform visualizer
                 work?
             </h2>
-            <p>Our online Audio to Video Waveform service allows you to create a professional video with audio wave
-                animation
-                for free from any audio file (MP3, WAV, AAC). It is a perfect solution for musicians, podcasters, and
+            <p>Our online Audio to Video Waveform service allows you to create a professional video with wave animation
+                for free from audio or video files (MP3, WAV, AAC, MP4, MOV). It is a perfect solution for musicians, podcasters, and
                 content
                 creators for YouTube, Instagram, and TikTok.</p>
             <ul style="padding-left: 20px; list-style-type: disc;">
-                <li>No registration or file uploads to server (everything is processed in your browser).</li>
+                <li>Supports both audio and video sources, processed directly in your browser.</li>
                 <li>Customizable colors and wave styles (bars or classic line).</li>
                 <li>High-quality video output (Full HD 1080p or 720p).</li>
                 <li>Fast rendering powered by FFmpeg.wasm technology.</li>

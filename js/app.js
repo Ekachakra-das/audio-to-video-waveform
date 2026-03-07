@@ -19,7 +19,7 @@ const translations = {
         downloadVideo: "Download Video",
         error: "Error: ",
         isolationWarning: "🔄 Activating isolation mode... Please reload the page (F5).",
-        loadToStart: "Upload a file to start"
+        loadToStart: "Upload an audio or video file to start"
     },
     ru: {
         loadingFfmpeg: "Загрузка ядра FFmpeg (30MB)...",
@@ -32,7 +32,7 @@ const translations = {
         downloadVideo: "Скачать видео",
         error: "Ошибка: ",
         isolationWarning: "🔄 Активация режима изоляции... Перезагрузите страницу (F5).",
-        loadToStart: "Загрузите файл для начала"
+        loadToStart: "Загрузите аудио или видеофайл для начала"
     }
 };
 
@@ -73,7 +73,7 @@ function initApp() {
         dropzone.style.borderColor = 'rgba(255, 255, 255, 0.2)';
         dropzone.style.background = 'transparent';
         const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('audio/')) handleFile(file);
+        if (file && (file.type.startsWith('audio/') || file.type.startsWith('video/'))) handleFile(file);
     };
 
     function handleFile(file) {
@@ -105,7 +105,7 @@ function initApp() {
             const settings = JSON.parse(saved);
             document.getElementById('width').value = settings.width || 1000;
             document.getElementById('height').value = settings.height || 250;
-            document.getElementById('waveType').value = settings.waveType || 'bars';
+            document.getElementById('waveType').value = settings.waveType || 'equalizer';
             document.getElementById('waveColor').value = settings.waveColor || '#2ecc71';
             if (settings.sensitivity) document.getElementById('sensitivity').value = settings.sensitivity;
             if (settings.thickness) document.getElementById('thickness').value = settings.thickness;
@@ -177,6 +177,8 @@ function initApp() {
                 console.warn("WaveSurfer not ready for options update yet");
             }
         }
+
+        saveSettings();
     }
 
     saveSettings();
@@ -195,8 +197,14 @@ function initApp() {
         };
     });
 
-    document.getElementById('height').oninput = saveSettings;
-    document.getElementById('width').oninput = saveSettings;
+    document.getElementById('height').oninput = () => {
+        saveSettings();
+        updateSettings();
+    };
+    document.getElementById('width').oninput = () => {
+        saveSettings();
+        updateSettings();
+    };
 
     loadSettings();
 
