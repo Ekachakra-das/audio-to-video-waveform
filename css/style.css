@@ -562,9 +562,3 @@ input[type="color"]::-webkit-color-swatch {
 .lang-btn:hover {
     background: rgba(255, 255, 255, 0.2);
 }
-
-.lang-btn.active {
-    background: var(--primary);
-    color: #000;
-    border-color: var(--primary);
-}
